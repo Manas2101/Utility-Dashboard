@@ -20,7 +20,7 @@ from datetime import datetime
 
 from flask import Flask, render_template, send_from_directory, jsonify, request
 
-# Removed optional icon upload functionality per request
+from werkzeug.utils import secure_filename
 
 import urllib.request
 
@@ -41,6 +41,16 @@ BASE_DIR = os.path.dirname(__file__)
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 
 UTILITIES_DIR = os.path.join(STATIC_DIR, 'utilities')
+
+ICONS_DIR = os.path.join(STATIC_DIR, 'icons')
+
+# Ensure icons directory exists
+
+if not os.path.exists(ICONS_DIR):
+
+    os.makedirs(ICONS_DIR)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'svg'}
 
  
 
@@ -815,6 +825,84 @@ def utility_details(utility_id: str):
             break
 
     return render_template('utility_details.html', utility=util, app_name=APP_NAME)
+
+
+
+def allowed_file(filename):
+
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
+@app.route(f"/{APP_NAME}/api/upload-icon", methods=['POST'])
+
+def upload_icon():
+
+    """Handle icon image upload and return the URL."""
+
+    if 'icon' not in request.files:
+
+        return jsonify({'error': 'No file provided'}), 400
+
+    
+
+    file = request.files['icon']
+
+    
+
+    if file.filename == '':
+
+        return jsonify({'error': 'No file selected'}), 400
+
+    
+
+    if not allowed_file(file.filename):
+
+        return jsonify({'error': 'Invalid file type. Only PNG, JPG, and SVG are allowed.'}), 400
+
+    
+
+    try:
+
+        # Generate unique filename
+
+        filename = secure_filename(file.filename)
+
+        name, ext = os.path.splitext(filename)
+
+        unique_filename = f"{name}_{uuid.uuid4().hex[:8]}{ext}"
+
+        
+
+        # Save file
+
+        filepath = os.path.join(ICONS_DIR, unique_filename)
+
+        file.save(filepath)
+
+        
+
+        # Return URL relative to static directory
+
+        icon_url = f"static/icons/{unique_filename}"
+
+        
+
+        return jsonify({
+
+            'success': True,
+
+            'url': icon_url,
+
+            'filename': unique_filename
+
+        }), 200
+
+    
+
+    except Exception as e:
+
+        return jsonify({'error': f'Upload failed: {str(e)}'}), 500
 
  
 
