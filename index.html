@@ -588,43 +588,61 @@
 
   <script>
 
-    // Expandable DATAP Utilities card functionality
+    // Wait for DOM to be fully loaded
 
-    let allUtilities = [];
+    document.addEventListener('DOMContentLoaded', function() {
 
-    const datapCard = document.getElementById('datapUtilitiesCard');
+      console.log('DOM loaded, initializing utilities dashboard...');
 
-    const utilitiesGrid = document.getElementById('utilitiesGrid');
+      
 
-    
+      // Expandable DATAP Utilities card functionality
 
-    // Toggle expand/collapse
+      let allUtilities = [];
 
-    if (datapCard) {
+      const datapCard = document.getElementById('datapUtilitiesCard');
 
-      datapCard.addEventListener('click', (e) => {
+      const utilitiesGrid = document.getElementById('utilitiesGrid');
 
-        // Don't toggle if clicking on a utility card link
+      
 
-        if (e.target.tagName === 'A' || e.target.closest('a.utility-mini-card')) {
+      console.log('Elements found:', {datapCard: !!datapCard, utilitiesGrid: !!utilitiesGrid});
 
-          return;
+      
 
-        }
+      // Toggle expand/collapse
 
-        e.preventDefault();
+      if (datapCard) {
 
-        datapCard.classList.toggle('expanded');
+        datapCard.addEventListener('click', (e) => {
 
-      });
+          // Don't toggle if clicking on a utility card link
 
-    }
+          if (e.target.tagName === 'A' || e.target.closest('a.utility-mini-card')) {
 
-    
+            return;
 
-    // Load and populate utilities
+          }
 
-    (async function(){
+          e.preventDefault();
+
+          console.log('Toggling DATAP Utilities card');
+
+          datapCard.classList.toggle('expanded');
+
+        });
+
+      } else {
+
+        console.error('datapCard element not found!');
+
+      }
+
+      
+
+      // Load and populate utilities
+
+      (async function(){
 
       try {
 
@@ -638,7 +656,17 @@
 
           allUtilities = await response.json();
 
-          console.log('Utilities loaded:', allUtilities.length);
+          console.log('Utilities loaded:', allUtilities.length, allUtilities);
+
+          
+
+          if (!utilitiesGrid) {
+
+            console.error('utilitiesGrid element not found!');
+
+            return;
+
+          }
 
           
 
@@ -716,15 +744,19 @@
 
         console.error('Failed to load utilities:', e);
 
-        utilitiesGrid.innerHTML = `<div style="text-align:center;padding:40px;color:rgba(255,100,100,0.7);font-size:14px;grid-column:1/-1;">
+        if (utilitiesGrid) {
 
-          <i class="fas fa-exclamation-circle" style="font-size:32px;margin-bottom:12px;"></i><br>
+          utilitiesGrid.innerHTML = `<div style="text-align:center;padding:40px;color:rgba(255,100,100,0.7);font-size:14px;grid-column:1/-1;">
 
-          Failed to load utilities: ${e.message}<br>
+            <i class="fas fa-exclamation-circle" style="font-size:32px;margin-bottom:12px;"></i><br>
 
-          <small style="opacity:0.6;">Check console for details</small>
+            Failed to load utilities: ${e.message}<br>
 
-        </div>`;
+            <small style="opacity:0.6;">Check console for details</small>
+
+          </div>`;
+
+        }
 
       }
 
@@ -736,13 +768,23 @@
 
     (async function(){
 
+      console.log('Loading CDMS Release Manager utilities...');
+
       try {
 
         const response = await fetch('/{{ app_name }}/api/utilities');
 
+        console.log('CDMS API Response status:', response.status);
+
+        
+
         if (response.ok) {
 
           const utilities = await response.json();
+
+          console.log('Total utilities for CDMS filter:', utilities.length);
+
+          
 
           const releaseManagerUtils = utilities.filter(u => 
 
@@ -752,7 +794,23 @@
 
           
 
+          console.log('Filtered release manager utilities:', releaseManagerUtils.length, releaseManagerUtils);
+
+          
+
           const releaseManagerList = document.getElementById('releaseManagerList');
+
+          
+
+          if (!releaseManagerList) {
+
+            console.error('releaseManagerList element not found!');
+
+            return;
+
+          }
+
+          
 
           if (releaseManagerUtils.length > 0) {
 
@@ -780,7 +838,21 @@
 
           } else {
 
+            console.log('No release manager utilities found');
+
             releaseManagerList.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);font-size:13px;"><i class="fas fa-info-circle"></i> No release utilities yet</div>';
+
+          }
+
+        } else {
+
+          console.error('CDMS API returned error:', response.status);
+
+          const releaseManagerList = document.getElementById('releaseManagerList');
+
+          if (releaseManagerList) {
+
+            releaseManagerList.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,100,100,0.6);font-size:13px;"><i class="fas fa-exclamation-circle"></i> Failed to load</div>';
 
           }
 
@@ -790,11 +862,21 @@
 
         console.error('Failed to load release manager utilities:', e);
 
+        const releaseManagerList = document.getElementById('releaseManagerList');
+
+        if (releaseManagerList) {
+
+          releaseManagerList.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,100,100,0.6);font-size:13px;"><i class="fas fa-exclamation-circle"></i> Error loading</div>';
+
+        }
+
       }
 
     })();
 
     
+
+    // Menu functionality
 
     (function(){
 
@@ -891,6 +973,10 @@
       });
 
     })();
+
+    
+
+    }); // End DOMContentLoaded
 
   </script>
 
