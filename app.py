@@ -330,13 +330,37 @@ def _generate_id(existing_ids: set, title: str) -> str:
 
  
 
+def _sanitize_filename(title: str) -> str:
+
+    """Convert utility title to a safe filename."""
+
+    # Remove or replace unsafe characters
+
+    safe_title = title.lower()
+
+    safe_title = safe_title.replace(' ', '_')
+
+    safe_title = ''.join(c for c in safe_title if c.isalnum() or c in ('_', '-'))
+
+    # Limit length
+
+    safe_title = safe_title[:100]
+
+    return safe_title
+
+
+
 def _write_per_utility_file(item: dict) -> str:
 
-    """Persist single utility JSON file under static/utilities/<id>.json."""
+    """Persist single utility JSON file under static/utilities/<title>.json."""
 
     _ensure_dirs()
 
-    filename = f"{item['id']}.json"
+    # Use sanitized title as filename
+
+    safe_title = _sanitize_filename(item.get('title', item['id']))
+
+    filename = f"{safe_title}.json"
 
     path = os.path.join(UTILITIES_DIR, filename)
 
