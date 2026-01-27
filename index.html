@@ -434,23 +434,9 @@
 
         <p class="category-description">Manage releases, track schedules, and generate release documentation</p>
 
-        <div class="subcategory-list">
+        <div class="subcategory-list" id="releaseManagerList">
 
-          <a href="#" class="subcategory-item" onclick="alert('Release Page Calendar - Coming Soon'); return false;">
-
-            <span class="subcategory-name"><i class="fas fa-calendar-check"></i> Release Page Calendar</span>
-
-            <span class="subcategory-arrow"><i class="fas fa-arrow-right"></i></span>
-
-          </a>
-
-          <a href="#" class="subcategory-item" onclick="alert('Release Page Generator - Coming Soon'); return false;">
-
-            <span class="subcategory-name"><i class="fas fa-file-alt"></i> Release Page Generator</span>
-
-            <span class="subcategory-arrow"><i class="fas fa-arrow-right"></i></span>
-
-          </a>
+          <div style="text-align:center;padding:20px;color:rgba(255,255,255,0.5);font-size:13px;">Loading...</div>
 
         </div>
 
@@ -614,15 +600,25 @@
 
     // Toggle expand/collapse
 
-    datapCard.addEventListener('click', (e) => {
+    if (datapCard) {
 
-      if (!e.target.closest('.utility-mini-card')) {
+      datapCard.addEventListener('click', (e) => {
+
+        // Don't toggle if clicking on a utility card link
+
+        if (e.target.tagName === 'A' || e.target.closest('a.utility-mini-card')) {
+
+          return;
+
+        }
+
+        e.preventDefault();
 
         datapCard.classList.toggle('expanded');
 
-      }
+      });
 
-    });
+    }
 
     
 
@@ -729,6 +725,70 @@
           <small style="opacity:0.6;">Check console for details</small>
 
         </div>`;
+
+      }
+
+    })();
+
+
+
+    // Populate CDMS Release Manager from utilities with category='release_manager'
+
+    (async function(){
+
+      try {
+
+        const response = await fetch('/{{ app_name }}/api/utilities');
+
+        if (response.ok) {
+
+          const utilities = await response.json();
+
+          const releaseManagerUtils = utilities.filter(u => 
+
+            u.type && (u.type.toLowerCase().includes('release') || u.type.toLowerCase().includes('cdms'))
+
+          );
+
+          
+
+          const releaseManagerList = document.getElementById('releaseManagerList');
+
+          if (releaseManagerUtils.length > 0) {
+
+            releaseManagerList.innerHTML = '';
+
+            releaseManagerUtils.forEach(util => {
+
+              const item = document.createElement('a');
+
+              item.href = `/{{ app_name }}/utility/${util.id}`;
+
+              item.className = 'subcategory-item';
+
+              item.innerHTML = `
+
+                <span class="subcategory-name"><i class="fas fa-calendar-check"></i> ${util.title}</span>
+
+                <span class="subcategory-arrow"><i class="fas fa-arrow-right"></i></span>
+
+              `;
+
+              releaseManagerList.appendChild(item);
+
+            });
+
+          } else {
+
+            releaseManagerList.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);font-size:13px;"><i class="fas fa-info-circle"></i> No release utilities yet</div>';
+
+          }
+
+        }
+
+      } catch (e) {
+
+        console.error('Failed to load release manager utilities:', e);
 
       }
 
