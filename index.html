@@ -264,6 +264,12 @@
 
   .page-header {position:relative;text-align:center;}
 
+  .add-utility-btn {position:absolute;top:0;left:0;display:inline-flex;align-items:center;gap:10px;padding:14px 24px;background:linear-gradient(135deg,#00FF88,#00CC6F);color:#0a0e27;text-decoration:none;border-radius:14px;font-weight:700;font-size:15px;box-shadow:0 8px 24px rgba(0,255,136,0.3);transition:all .3s;border:1px solid rgba(255,255,255,0.2);}
+
+  .add-utility-btn:hover {transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,255,136,0.5);background:linear-gradient(135deg,#00FFAA,#00DD7F);}
+
+  .add-utility-btn i {font-size:16px;}
+
   .header-menu {position:absolute;top:0;right:0;}
 
   .menu-trigger {width:52px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:16px;background:linear-gradient(135deg,#DB0011,#FF4444);cursor:pointer;color:#fff;font-size:22px;font-weight:600;box-shadow:0 8px 24px rgba(219,0,17,0.4);transition:.3s all;border:1px solid rgba(255,255,255,0.1);}
@@ -325,6 +331,14 @@
       <h1 class="head-class"><i class="fas fa-cogs icon"></i>DATAP Automation Utilities Dashboard</h1>
 
       <p class="subtitle">Centralized hub for automation utilities, release management, and DevOps metrics</p>
+
+      <a href="/{{ app_name }}/add" class="add-utility-btn" title="Add New Utility">
+
+        <i class="fas fa-plus"></i>
+
+        <span>Add Utility</span>
+
+      </a>
 
       <div class="header-menu" id="headerMenu">
 
@@ -620,9 +634,15 @@
 
         const response = await fetch('/{{ app_name }}/api/utilities');
 
+        console.log('API Response status:', response.status);
+
+        
+
         if (response.ok) {
 
           allUtilities = await response.json();
+
+          console.log('Utilities loaded:', allUtilities.length);
 
           
 
@@ -672,9 +692,27 @@
 
           } else {
 
-            utilitiesGrid.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);font-size:14px;grid-column:1/-1;">No utilities found</div>';
+            utilitiesGrid.innerHTML = `<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);font-size:14px;grid-column:1/-1;">
+
+              <i class="fas fa-inbox" style="font-size:48px;margin-bottom:16px;opacity:0.3;"></i><br>
+
+              No utilities found. <a href="/{{ app_name }}/add" style="color:#00FF88;text-decoration:underline;">Add your first utility</a>
+
+            </div>`;
 
           }
+
+        } else {
+
+          console.error('API returned error:', response.status);
+
+          utilitiesGrid.innerHTML = `<div style="text-align:center;padding:40px;color:rgba(255,100,100,0.7);font-size:14px;grid-column:1/-1;">
+
+            <i class="fas fa-exclamation-circle" style="font-size:32px;margin-bottom:12px;"></i><br>
+
+            Failed to load utilities (Status: ${response.status})
+
+          </div>`;
 
         }
 
@@ -682,7 +720,15 @@
 
         console.error('Failed to load utilities:', e);
 
-        utilitiesGrid.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,100,100,0.7);font-size:14px;grid-column:1/-1;"><i class="fas fa-exclamation-circle"></i> Failed to load utilities</div>';
+        utilitiesGrid.innerHTML = `<div style="text-align:center;padding:40px;color:rgba(255,100,100,0.7);font-size:14px;grid-column:1/-1;">
+
+          <i class="fas fa-exclamation-circle" style="font-size:32px;margin-bottom:12px;"></i><br>
+
+          Failed to load utilities: ${e.message}<br>
+
+          <small style="opacity:0.6;">Check console for details</small>
+
+        </div>`;
 
       }
 
