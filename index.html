@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Automation Utilities Dashboard</title>
+
+  <link rel="icon" type="image/png" href="/{{ app_name }}/static/mcphub.png" />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+  <style>
+
+    body {font-family: 'Segoe UI', Arial, sans-serif; margin:0; background:linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%); color:#333; min-height:100vh;}
+
+  .container {max-width:1400px;margin:36px auto 40px;padding:0 28px;}
+
+  h1 {font-size:32px;display:flex;align-items:center;gap:12px;margin:0 0 12px;color:#141414;font-weight:700;}
+
+    h1 .icon {color:#DB0011;}
+
+  .subtitle {font-size:15px;color:#666;margin:0 0 40px;text-align:center;}
+
+  .categories-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin:40px 0;}
+
+  .category-card {background:#fff;border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s;border-left:4px solid #DB0011;}
+
+  .category-card:hover {transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,.12);}
+
+  .category-header {display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+
+  .category-icon {width:48px;height:48px;background:linear-gradient(135deg,#DB0011,#A9000D);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;}
+
+  .category-title {font-size:20px;font-weight:700;color:#141414;margin:0;}
+
+  .category-description {font-size:13px;color:#666;margin:0 0 16px;line-height:1.5;}
+
+  .subcategory-list {display:flex;flex-direction:column;gap:10px;}
+
+  .subcategory-item {background:#f8f9fa;border:1px solid #e3e6ea;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;transition:all .2s;cursor:pointer;text-decoration:none;color:#333;}
+
+  .subcategory-item:hover {background:#fff;border-color:#DB0011;transform:translateX(4px);}
+
+  .subcategory-item.disabled {opacity:0.6;cursor:not-allowed;}
+
+  .subcategory-item.disabled:hover {transform:none;border-color:#e3e6ea;}
+
+  .subcategory-name {font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;}
+
+  .subcategory-badge {font-size:10px;padding:3px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
+
+  .badge-coming-soon {background:#fff4e0;color:#9a5a00;}
+
+  .badge-tbd {background:#e8e8e8;color:#666;}
+
+  .subcategory-arrow {color:#DB0011;font-size:16px;}
+
+  .utilities-section {margin-top:50px;}
+
+  .section-header {display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+
+  .section-title {font-size:24px;font-weight:700;color:#141414;margin:0;}
+
+  .filter-bar {display:flex;gap:12px;flex-wrap:wrap;margin:20px 0 26px;}
+
+    .filter-bar input {flex:1;min-width:260px;padding:11px 14px;border:1px solid #d0d5dd;border-radius:8px;font-size:14px;}
+
+    .filter-bar input:focus {outline:2px solid #DB0011;border-color:#DB0011;}
+
+    .filter-bar button {background:#DB0011;color:#fff;border:none;padding:11px 18px;border-radius:8px;cursor:pointer;font-weight:600;transition:background .2s;}
+
+    .filter-bar button:hover {background:#A9000D;}
+
+  .stats {margin:20px 0 30px;font-size:14px;color:#555;text-align:center;}
+
+  .stats strong {font-size:20px;font-weight:700;color:#141414;}
+
+    .grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+
+    .card {background:#fff;border:1px solid #e3e3e3;border-radius:12px;padding:16px;display:flex;flex-direction:column;position:relative;box-shadow:0 2px 4px rgba(0,0,0,.06);}    
+
+    .card.running {border-left:6px solid #00875A;}
+
+    .card.available {border-left:6px solid #1e90ff;}
+
+    .card.implementing {border-left:6px solid red;}
+
+    .card .title-row {display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+
+    .card img.icon {width:40px;height:40px;object-fit:contain;border-radius:6px;background:#fff;border:1px solid #eee;}
+
+    .card h2 {font-size:16px;margin:0;flex:1;line-height:1.2;}
+
+    .desc {font-size:13px;line-height:1.4;color:#444;margin:0 0 8px;max-height:72px;overflow:hidden;position:relative;}
+
+    .meta {display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+
+    .badge {font-size:11px;padding:4px 6px;border-radius:4px;background:#f0f0f0;color:#333;}
+
+    .actions {display:flex;justify-content:space-between;align-items:center;margin-top:auto;}
+
+    .like {cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;color:#DB0011;}
+
+    .like .count {font-weight:600;}
+
+    .status-pill {position:absolute;top:8px;right:8px;font-size:11px;padding:4px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;background:#666;color:#fff;}
+
+    .card.running .status-pill {background:#00875A;}
+
+    .card.available .status-pill {background:#1e90ff;}
+
+  .card-divider {border:none;border-top:1px solid #eee;margin:10px 0 8px;}
+
+  .code-link {display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;background:#f0f0f0;color:#333;text-decoration:none;font-size:14px;}
+
+  .code-link:hover {background:#e2e2e2;color:#000;}
+
+  .title-link {color:#141414;text-decoration:none;}
+
+  .title-link:hover {text-decoration:underline;}
+
+  .action-icons {display:flex;align-items:center;gap:6px;}
+
+  .icon-btn {display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;background:#f0f0f0;border-radius:6px;color:#333;text-decoration:none;font-size:14px;}
+
+  .icon-btn:hover {background:#e2e2e2;color:#000;}
+
+  .like {transition:color .15s ease;}
+
+  .like i {color:#bbb;}
+
+  .like:hover i {color:#888;}
+
+  .actions {display:flex;justify-content:space-between;align-items:center;gap:12px;}
+
+  .left-group, .right-group {display:flex;align-items:center;gap:6px;}
+
+  .right-group .like {display:inline-flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border:none;border-radius:18px;background:#f3f3f3;font-size:12px;}
+
+  .right-group .like.liked {background:#ffe6e8;}
+
+  .right-group .like.liked i {color:#DB0011;}
+
+  .right-group .like .count {font-weight:600;font-size:12px;}
+
+  .right-group .comment-btn {width:auto;height:auto;padding:4px 10px;border:none;border-radius:18px;background:#f3f3f3;display:inline-flex;align-items:center;justify-content:center;color:#444;cursor:pointer;}
+
+  .right-group .comment-btn:hover {background:#e7e7e7;}
+
+  .right-group .comment-btn:active {background:#ddd;}
+
+  .right-group .like:hover {background:#e7e7e7;}
+
+  .like.liked i {color:#DB0011;}
+
+  .like.liked .count {color:#DB0011;}
+
+  .comments-panel {margin-top:10px;border:1px solid #eee;padding:10px;border-radius:8px;background:#fafafa;}
+
+  .comments-panel .comments-list {max-height:140px;overflow:auto;margin-bottom:8px;display:flex;flex-direction:column;gap:6px;}
+
+  .comment-item {background:#fff;border:1px solid #e5e5e5;padding:6px 8px;border-radius:6px;font-size:12px;display:flex;justify-content:space-between;gap:10px;}
+
+  .comment-item time {font-size:10px;color:#777;white-space:nowrap;}
+
+  .comment-form {display:flex;gap:6px;}
+
+  .comment-form input {flex:1;padding:6px 8px;font-size:12px;border:1px solid #ccc;border-radius:4px;}
+
+  .comment-form button {padding:6px 10px;font-size:12px;background:#DB0011;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+
+  .comment-form button:hover {background:#b9000e;}
+
+  .no-comments {font-size:12px;color:#666;}
+
+  .card .line {font-size:12px; margin:2px 0 4px; display:flex; flex-wrap:wrap; gap:4px; align-items:center;}
+
+  .card .label-key {font-weight:600; color:#222;}
+
+  .card .label-val.status {padding:2px 6px; border-radius:12px; background:#ececec; font-size:11px; text-transform:capitalize;}
+
+  .card.running .label-val.status {background:#e0f6ef; color:#006b47;}
+
+  .card.implementing .label-val.status, .card.implementation .label-val.status {background:#e8e7e5; color:red;}
+
+  .card .label-val.developer {font-weight:500;}
+
+  .card .label-val.source {font-style:italic; color:#555;}
+
+    footer {margin:40px 0 10px;text-align:center;font-size:12px;color:#888;}
+
+    .no-results {grid-column:1/-1;text-align:center;padding:40px 0;color:#666;}
+
+     .head-class {
+
+        color: var(--hsbc-black);
+
+        font-size: 28px;
+
+        font-weight: 600;
+
+        margin: 0 0 10px;
+
+        letter-spacing: 0.5px;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center; /* horizontally center icon + text */
+
+        gap: 10px;
+
+        text-align: center; /* ensures multiline center if wraps */
+
+        width: 100%;
+
+      }
+
+  .page-header {position:relative;text-align:center;}
+
+  .header-menu {position:absolute;top:0;right:0;}
+
+  .menu-trigger {width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#DB0011;cursor:pointer;color:#fff;font-size:20px;font-weight:600;box-shadow:0 4px 10px rgba(0,0,0,.18);transition:.18s background, .18s transform;}
+
+  .menu-trigger:hover {background:#b9000e;}
+
+  .menu-trigger:active {transform:scale(.94);}
+
+  .menu-panel {position:absolute;top:54px;right:0;background:#fff;border:1px solid #ebebeb;box-shadow:0 12px 28px -6px rgba(0,0,0,.18),0 4px 8px rgba(0,0,0,.08);border-radius:18px;padding:18px 20px 16px;display:none;z-index:70;min-width:260px;}
+
+  .menu-panel.visible {display:block;animation:fadeScale .18s ease;}
+
+  @keyframes fadeScale {0%{opacity:0;transform:translateY(-6px) scale(.96);}100%{opacity:1;transform:translateY(0) scale(1);}}
+
+  .menu-grid {display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+
+  .menu-item {background:#f6f6f6;border:1px solid #ececec;border-radius:14px;padding:14px 10px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;position:relative;isolation:isolate;cursor:pointer;transition:.18s background,.18s transform,.18s box-shadow;color:#222;font-size:12px;font-weight:600;line-height:1.1;text-align:center;min-height:92px;}
+
+  .menu-item i {font-size:26px;margin-bottom:8px;color:#DB0011;transition:color .18s;}
+
+  .menu-item:hover {background:#fff;box-shadow:0 6px 14px rgba(0,0,0,.10);transform:translateY(-3px);}
+
+  .menu-item:active {transform:translateY(0);}
+
+  .menu-item span {display:block;font-size:12px;font-weight:600;letter-spacing:.4px;}
+
+  .menu-item.add i {color:#DB0011;}
+
+  .menu-item.guide i {color:#DB0011;}
+
+  .menu-item.refresh i {color:#DB0011;}
+
+  .menu-item.home i {color:#DB0011;}
+
+  .menu-meta {margin-top:14px;display:flex;justify-content:space-between;font-size:11px;color:#777;padding:0 2px;}
+
+  .menu-meta span {display:inline-flex;align-items:center;gap:4px;}
+
+  .menu-meta i {font-size:12px;color:#999;}
+
+  .menu-close-tip {position:absolute;top:8px;left:16px;font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.6px;font-weight:600;}
+
+  .menu-accessibility-hint {position:absolute;top:8px;right:16px;font-size:10px;color:#aaa;letter-spacing:.6px;font-weight:600;}
+
+  .menu-panel:focus-visible {outline:2px solid #DB0011;outline-offset:4px;}
+
+  .menu-item:focus-visible {outline:2px solid #DB0011;outline-offset:2px;}
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="page-header">
+
+      <h1 class="head-class"><i class="fas fa-cogs icon"></i>DATAP Automation Utilities Dashboard</h1>
+
+      <p class="subtitle">Centralized hub for automation utilities, release management, and DevOps metrics</p>
+
+      <div class="header-menu" id="headerMenu">
+
+        <div class="menu-trigger" id="menuTrigger" title="Quick actions" aria-haspopup="true" aria-expanded="false" aria-controls="menuPanel">
+
+          <i class="fa fa-grip"></i>
+
+        </div>
+
+        <div class="menu-panel" id="menuPanel" role="menu" aria-hidden="true" aria-label="Automation utilities quick actions">
+
+          <div class="menu-grid" role="group" aria-label="Primary actions">
+
+            <button type="button" class="menu-item add" data-action="add" title="Add Utility" aria-label="Add Utility">
+
+              <i class="fa fa-plus"></i>
+
+              <span>Add</span>
+
+            </button>
+
+            <button type="button" class="menu-item guide" data-action="guide" title="Guide (placeholder)" aria-label="Guide">
+
+              <i class="fa fa-book"></i>
+
+              <span>Guide</span>
+
+            </button>
+
+            <button type="button" class="menu-item refresh" data-action="refresh" title="Refresh Data" aria-label="Refresh Data">
+
+              <i class="fa fa-rotate"></i>
+
+              <span>Refresh</span>
+
+            </button>
+
+            <a href="/{{ app_name }}/home.html" class="menu-item home" title="Dashboard" aria-label="Dashboard" data-action="home">
+
+              <i class="fa fa-home"></i>
+
+              <span>Home</span>
+
+            </a>
+
+          </div>
+
+          <div class="menu-meta">
+
+            <span><i class="fa fa-lightbulb"></i>v0.1</span>
+
+            <span><i class="fa fa-keyboard"></i>Esc to close</span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="categories-grid">
+
+      <div class="category-card">
+
+        <div class="category-header">
+
+          <div class="category-icon"><i class="fas fa-tools"></i></div>
+
+          <h2 class="category-title">DATAP Utilities</h2>
+
+        </div>
+
+        <p class="category-description">Browse and manage all automation utilities in the DATAP ecosystem</p>
+
+        <div class="subcategory-list" id="utilitiesList">
+
+          <div style="text-align:center;padding:20px;color:#999;font-size:13px;">Loading utilities...</div>
+
+        </div>
+
+      </div>
+
+      <div class="category-card">
+
+        <div class="category-header">
+
+          <div class="category-icon"><i class="fas fa-calendar-alt"></i></div>
+
+          <h2 class="category-title">CDMS Release Manager</h2>
+
+        </div>
+
+        <p class="category-description">Manage releases, track schedules, and generate release documentation</p>
+
+        <div class="subcategory-list">
+
+          <a href="#" class="subcategory-item" onclick="alert('Release Page Calendar - Coming Soon'); return false;">
+
+            <span class="subcategory-name"><i class="fas fa-calendar-check"></i> Release Page Calendar</span>
+
+            <span class="subcategory-arrow"><i class="fas fa-arrow-right"></i></span>
+
+          </a>
+
+          <a href="#" class="subcategory-item" onclick="alert('Release Page Generator - Coming Soon'); return false;">
+
+            <span class="subcategory-name"><i class="fas fa-file-alt"></i> Release Page Generator</span>
+
+            <span class="subcategory-arrow"><i class="fas fa-arrow-right"></i></span>
+
+          </a>
+
+        </div>
+
+      </div>
+
+      <div class="category-card">
+
+        <div class="category-header">
+
+          <div class="category-icon"><i class="fas fa-chart-line"></i></div>
+
+          <h2 class="category-title">DevOps Metrics</h2>
+
+        </div>
+
+        <p class="category-description">Track and analyze DevOps performance metrics and KPIs</p>
+
+        <div class="subcategory-list">
+
+          <a href="#" class="subcategory-item" onclick="alert('LTTD - Coming Soon'); return false;">
+
+            <span class="subcategory-name"><i class="fas fa-clock"></i> LTTD</span>
+
+            <span class="subcategory-arrow"><i class="fas fa-arrow-right"></i></span>
+
+          </a>
+
+          <div class="subcategory-item disabled">
+
+            <span class="subcategory-name"><i class="fas fa-robot"></i> RF <span class="subcategory-badge badge-coming-soon">Coming Soon</span></span>
+
+          </div>
+
+          <div class="subcategory-item disabled">
+
+            <span class="subcategory-name"><i class="fas fa-brain"></i> Agentic DevOps <span class="subcategory-badge badge-coming-soon">Coming Soon</span></span>
+
+          </div>
+
+          <div class="subcategory-item disabled">
+
+            <span class="subcategory-name"><i class="fas fa-tasks"></i> DATAP Overdue Tasks <span class="subcategory-badge badge-tbd">TBD</span></span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="utilities-section">
+
+      <div class="section-header">
+
+        <h2 class="section-title">All Utilities</h2>
+
+      </div>
+
+      <div class="filter-bar">
+
+        <input id="searchInput" placeholder="Search utilities by title, type, developer, description..." />
+
+        <button id="btnRunning">Running (0)</button>
+
+        <button id="btnAll" class="all active">Show All</button>
+
+      </div>
+
+      <div class="stats">
+
+        <strong id="totalUtilities">0</strong> automation utilities integrate with <strong id="totalTools">0</strong> tools.
+
+      </div>
+
+      <div id="grid" class="grid">
+
+        <p id="loading">Loading utilities...</p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>UI-only prototype • Data is Static for now</footer>
+
+  <script src="/{{ app_name }}/static/utilities.js"></script>
+
+  <script>
+
+    // Populate DATAP Utilities card with actual utilities
+
+    (async function(){
+
+      try {
+
+        const response = await fetch('/{{ app_name }}/api/utilities');
+
+        if (response.ok) {
+
+          const utilities = await response.json();
+
+          const utilitiesList = document.getElementById('utilitiesList');
+
+          if (utilities && utilities.length > 0) {
+
+            utilitiesList.innerHTML = '';
+
+            // Show max 5 utilities in the card
+
+            const displayUtilities = utilities.slice(0, 5);
+
+            displayUtilities.forEach(util => {
+
+              const item = document.createElement('a');
+
+              item.href = `/{{ app_name }}/utility/${util.id}`;
+
+              item.className = 'subcategory-item';
+
+              item.innerHTML = `
+
+                <span class="subcategory-name"><i class="fas fa-plug"></i> ${util.title}</span>
+
+                <span class="subcategory-arrow"><i class="fas fa-arrow-right"></i></span>
+
+              `;
+
+              utilitiesList.appendChild(item);
+
+            });
+
+            // Add "View All" link if there are more utilities
+
+            if (utilities.length > 5) {
+
+              const viewAll = document.createElement('a');
+
+              viewAll.href = '#all-utilities';
+
+              viewAll.className = 'subcategory-item';
+
+              viewAll.style.background = '#DB0011';
+
+              viewAll.style.color = '#fff';
+
+              viewAll.style.fontWeight = '700';
+
+              viewAll.innerHTML = `
+
+                <span class="subcategory-name">View All ${utilities.length} Utilities</span>
+
+                <span class="subcategory-arrow"><i class="fas fa-arrow-down"></i></span>
+
+              `;
+
+              viewAll.onclick = (e) => {
+
+                e.preventDefault();
+
+                document.querySelector('.utilities-section').scrollIntoView({ behavior: 'smooth' });
+
+              };
+
+              utilitiesList.appendChild(viewAll);
+
+            }
+
+          } else {
+
+            utilitiesList.innerHTML = '<div style="text-align:center;padding:20px;color:#999;font-size:13px;">No utilities found</div>';
+
+          }
+
+        }
+
+      } catch (e) {
+
+        console.error('Failed to load utilities:', e);
+
+      }
+
+    })();
+
+    
+
+    (function(){
+
+      const trigger = document.getElementById('menuTrigger');
+
+      const panel = document.getElementById('menuPanel');
+
+      if(!trigger || !panel) return;
+
+      function openPanel(){
+
+        panel.classList.add('visible');
+
+        panel.setAttribute('aria-hidden','false');
+
+        trigger.setAttribute('aria-expanded','true');
+
+      }
+
+      function closePanel(){
+
+        panel.classList.remove('visible');
+
+        panel.setAttribute('aria-hidden','true');
+
+        trigger.setAttribute('aria-expanded','false');
+
+      }
+
+      trigger.addEventListener('click', ()=>{
+
+        if(panel.classList.contains('visible')) closePanel(); else openPanel();
+
+      });
+
+      document.addEventListener('click', e=>{
+
+        if(!panel.contains(e.target) && !trigger.contains(e.target)) closePanel();
+
+      });
+
+      document.addEventListener('keydown', e=>{
+
+        if(e.key==='Escape') closePanel();
+
+        if(e.key==='ArrowDown' && document.activeElement===trigger){
+
+          openPanel();
+
+          const first = panel.querySelector('.menu-item');
+
+          if(first) first.focus();
+
+        }
+
+        if(e.key==='Tab' && panel.classList.contains('visible')){
+
+          // keep focus inside
+
+          const focusables = Array.from(panel.querySelectorAll('.menu-item'));
+
+          if(!focusables.length) return;
+
+          const first = focusables[0];
+
+          const last = focusables[focusables.length-1];
+
+          if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+
+          else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+
+        }
+
+      });
+
+      panel.addEventListener('click', e=>{
+
+        const el = e.target.closest('[data-action]');
+
+        if(!el) return;
+
+        const action = el.getAttribute('data-action');
+
+        if(action==='refresh'){ window.location.reload(); }
+
+  else if(action==='guide'){ alert('Guide page not yet implemented.'); }
+
+  else if(action==='add'){ window.location.href='/{{ app_name }}/add'; return; }
+
+        else if(action==='home'){ closePanel(); }
+
+        closePanel();
+
+      });
+
+    })();
+
+  </script>
+
+</body>
+
+</html>

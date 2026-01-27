@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Utility Details - {{ utility.title if utility else 'Not Found' }}</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+  <style>
+
+    :root {
+
+      --hsbc-red:#DB0011; --hsbc-red-darker:#A9000D; --hsbc-black:#141414; --hsbc-charcoal:#333; --hsbc-medium:#767676; --hsbc-light:#DCDCDC; --hsbc-vlight:#f0f0f0; --bg:#f8f9fa; --white:#fff;
+
+      --run-bg:#00875A; --run-text:#fff; --impl-bg:#fff4e0; --impl-text:#9a5a00;
+
+    }
+
+    body {font-family:'Helvetica Neue',Arial,sans-serif;margin:0;background:var(--bg);color:var(--hsbc-charcoal);font-size:14px;line-height:1.5;}
+
+    .container {max-width:900px;margin:40px auto;padding:30px;background:var(--white);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.05);}    
+
+  h1 {margin:0 0 4px;font-size:20px;font-weight:600;color:var(--hsbc-black);display:flex;align-items:center;gap:10px;}
+
+  h1 .mini-icon {width:28px;height:28px;object-fit:contain;border:1px solid var(--hsbc-light);border-radius:6px;background:#fff;padding:2px;}
+
+    .header {display:flex;align-items:center;margin-bottom:24px;gap:20px;}
+
+    .header img {width:72px;height:72px;object-fit:contain;border-radius:8px;border:1px solid var(--hsbc-light);background:#fff;}
+
+    .status-badge {display:inline-block;padding:4px 10px;border-radius:16px;font-size:12px;font-weight:600;text-transform:capitalize;}
+
+    .status-running {background:var(--run-bg);color:var(--run-text);}    
+
+    .status-implementing,.status-implementation {background:var(--impl-bg);color:var(--impl-text);}
+
+    table {width:100%;border-collapse:collapse;margin:10px 0 28px;font-size:14px;}
+
+    th {text-align:left;background:var(--hsbc-vlight);padding:10px 12px;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--hsbc-charcoal);}    
+
+    td {padding:10px 12px;border-bottom:1px solid var(--hsbc-light);}    
+
+    tbody tr:last-child td {border-bottom:none;}
+
+    pre {background:var(--hsbc-vlight);padding:14px;border-radius:6px;overflow:auto;font-size:13px;margin:0;}
+
+    .config-wrapper {position:relative;}
+
+    .copy-btn {position:absolute;top:8px;right:8px;background:var(--hsbc-vlight);border:1px solid var(--hsbc-light);border-radius:20px;padding:6px 10px;cursor:pointer;font-size:12px;}
+
+    .copy-btn:hover {background:#e7e7e7;}
+
+    .back {text-decoration:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--hsbc-medium);padding:8px 14px;border-radius:6px;font-size:14px;color:var(--hsbc-charcoal);}
+
+    .back:hover {background:var(--hsbc-vlight);}    
+
+    .not-found {text-align:center;padding:60px 0;}
+
+    /* Edit form styling */
+
+    .edit-form {display:flex;flex-direction:column;gap:12px;}
+
+    .field {display:flex;flex-direction:column;gap:6px;}
+
+    .field label {font-size:12px;color:var(--hsbc-medium);font-weight:600;}
+
+    .input {width:100%;padding:10px;border:1px solid var(--hsbc-light);border-radius:6px;background:#fff;}
+
+    .textarea {min-height:100px;}
+
+    .submit {background:var(--hsbc-red);color:#fff;border:none;padding:10px 16px;border-radius:6px;cursor:pointer;align-self:flex-start;}
+
+    .note {font-size:12px;color:var(--hsbc-medium);}  
+
+    #toggleEdit {background:var(--hsbc-red);color:#fff;border:none;}
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    {% if utility %}
+
+      <div class="header">
+
+        <h1>
+
+          {% if utility.icon_url %}<img class="mini-icon" src="/{{ app_name }}/{{ utility.icon_url }}" alt="{{ utility.title }} icon" onerror="this.style.display='none'" />{% endif %}
+
+          {{ utility.title }}
+
+        </h1>
+
+        <button id="editUtilityBtn" class="submit" style="margin-left:auto;">Edit Utility</button>
+
+      </div>
+
+      <table>
+
+        <tbody>
+
+          <tr><th>Status</th><td><span class="status-badge status-{{ utility.status|lower }}">{{ utility.status }}</span></td></tr>
+
+          <tr><th>Description</th><td>{{ utility.description }}</td></tr>
+
+          <tr><th>Developer</th><td>{{ utility.developer }}</td></tr>
+
+          <tr><th>Source</th><td>{{ utility.developer_source if utility.developer_source else 'Internal' }}</td></tr>
+
+          <tr><th>Type</th><td>{{ utility.type }}</td></tr>
+
+          <tr><th>Language</th><td>{{ utility.source_language or 'N/A' }}</td></tr>
+
+          <tr><th>Transport</th><td>{{ utility.transport_type or 'N/A' }}</td></tr>
+
+          <tr><th>Tools</th><td>{{ utility.utility_tools_number if utility.utility_tools_number is not none else utility.mcp_tools_number }}</td></tr>
+
+          <tr><th>Committer</th><td>{{ utility.committer or 'N/A' }}</td></tr>
+
+          {% if utility.server_url %}<tr><th>Server URL</th><td><a href="{{ utility.server_url }}" target="_blank">{{ utility.server_url }}</a></td></tr>{% endif %}
+
+          {% if utility.source_code_url %}<tr><th>Source Code</th><td><a href="{{ utility.source_code_url }}" target="_blank">{{ utility.source_code_url }}</a></td></tr>{% endif %}
+
+        </tbody>
+
+      </table>
+
+      <div class="config-wrapper">
+
+        <h3 style="font-size:14px;font-weight:600;margin:0 0 8px;color:var(--hsbc-charcoal);">Playbook / Running Steps</h3>
+
+        <button class="copy-btn" id="copyConfigBtn">Copy Steps</button>
+
+        <pre id="configBlock">{{ utility.playbook if utility.playbook else 'No playbook provided' }}</pre>
+
+      </div>
+
+      <hr style="margin:28px 0;border:none;border-top:1px solid var(--hsbc-light);" />
+
+      <p style="margin-top:32px;"><a class="back" href="/{{ app_name }}/home.html"><i class="fa fa-arrow-left"></i> Back to Dashboard</a></p>
+
+    {% else %}
+
+      <div class="not-found">
+
+        <h1>Utility Not Found</h1>
+
+        <p>The requested utility does not exist.</p>
+
+        <p><a class="back" href="/{{ app_name }}/home.html">Back to Dashboard</a></p>
+
+      </div>
+
+    {% endif %}
+
+  </div>
+
+  <script>
+
+    const btn = document.getElementById('copyConfigBtn');
+
+    if(btn){
+
+      btn.addEventListener('click',()=>{
+
+        const pre = document.getElementById('configBlock');
+
+        const text = pre ? pre.textContent : '';
+
+        if(navigator.clipboard){
+
+          navigator.clipboard.writeText(text).then(()=>{
+
+            btn.textContent='Copied!';
+
+            setTimeout(()=>btn.textContent='Copy Config',1600);
+
+          });
+
+        }
+
+      });
+
+    }
+
+  </script>
+
+  <script>
+
+    const editBtn = document.getElementById('editUtilityBtn');
+
+    if (editBtn) {
+
+      editBtn.addEventListener('click', () => {
+
+        // Encode utility data to pass to add-utility page
+
+        const utilityData = {
+
+          id: '{{ utility.id }}',
+
+          title: '{{ utility.title }}',
+
+          icon_url: '{{ utility.icon_url }}',
+
+          description: `{{ utility.description }}`,
+
+          developer: '{{ utility.developer }}',
+
+          developer_source: '{{ utility.developer_source }}',
+
+          server_url: '{{ utility.server_url }}',
+
+          source_code_url: '{{ utility.source_code_url }}',
+
+          type: '{{ utility.type }}',
+
+          source_language: '{{ utility.source_language }}',
+
+          status: '{{ utility.status }}',
+
+          committer: '{{ utility.committer }}',
+
+          playbook: `{{ utility.playbook if utility.playbook else '' }}`
+
+        };
+
+        // Store in sessionStorage and redirect
+
+        sessionStorage.setItem('editUtility', JSON.stringify(utilityData));
+
+        window.location.href = '/{{ app_name }}/add';
+
+      });
+
+    }
+
+  </script>
+
+</body>
+
+</html>
