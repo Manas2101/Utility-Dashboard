@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CDMS Releases</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <header class="header">
+
+            <h1><i class="fas fa-rocket"></i>CDMS Release Manager Portal</h1>
+
+            <p>Streamline your release planning and avoid conflicts</p>
+
+        </header>
+
+ 
+
+        <div class="main-content">
+
+            <div class="sidebar">
+
+                <div class="nav-buttons">
+
+                    <button class="nav-btn active" data-tab="calendar">
+
+                        <i class="fas fa-calendar-alt"></i> Release Calendar
+
+                    </button>
+
+                    <button class="nav-btn" data-tab="booking">
+
+                        <i class="fas fa-plus-circle"></i> Book Release
+
+                    </button>
+
+                    <button class="nav-btn" data-tab="dashboard">
+
+                        <i class="fas fa-chart-bar"></i> Dashboard
+
+                    </button>
+
+                </div>
+
+ 
+
+                <div class="stats-card">
+
+                    <h3>Quick Stats</h3>
+
+                    <div class="stat-item">
+
+                        <span class="stat-label">Total Releases:</span>
+
+                        <span class="stat-value" id="totalReleases">0</span>
+
+                    </div>
+
+                    <div class="stat-item">
+
+                        <span class="stat-label">This Month:</span>
+
+                        <span class="stat-value" id="monthlyReleases">0</span>
+
+                    </div>
+
+                    <div class="stat-item">
+
+                        <span class="stat-label">Conflicts:</span>
+
+                        <span class="stat-value conflict" id="conflicts">0</span>
+
+                    </div>
+
+                </div>
+
+ 
+
+                <div class="data-management">
+
+                    <h3>Data Management</h3>
+
+                    <button class="data-btn" id="exportData">
+
+                        <i class="fas fa-download"></i> Export JSON
+
+                    </button>
+
+                    <button class="data-btn" id="importData">
+
+                        <i class="fas fa-upload"></i> Import JSON
+
+                    </button>
+
+                    <input type="file" id="fileInput" accept=".json" style="display: none;">
+
+                    <button class="data-btn" id="refreshData">
+
+                        <i class="fas fa-sync"></i> Refresh Data
+
+                    </button>
+
+                </div>
+
+            </div>
+
+ 
+
+            <div class="content-area">
+
+                <!-- Calendar Tab -->
+
+                <div class="tab-content" id="calendar-tab">
+
+                    <div class="tab-header">
+
+                        <h2><i class="fas fa-calendar-alt"></i> Release Calendar</h2>
+
+                        <div class="calendar-controls">
+
+                            <button class="btn-secondary" id="prevMonth">
+
+                                <i class="fas fa-chevron-left"></i>
+
+                            </button>
+
+                            <span id="currentMonth"></span>
+
+                            <button class="btn-secondary" id="nextMonth">
+
+                                <i class="fas fa-chevron-right"></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <div class="calendar-container">
+
+                        <div class="calendar" id="calendar"></div>
+
+                    </div>
+
+                    <div class="legend">
+
+                        <div class="legend-item">
+
+                            <span class="legend-color available"></span>
+
+                            <span>Available</span>
+
+                        </div>
+
+                        <div class="legend-item">
+
+                            <span class="legend-color booked"></span>
+
+                            <span>Booked</span>
+
+                        </div>
+
+                        <div class="legend-item">
+
+                            <span class="legend-color conflict"></span>
+
+                            <span>Conflict</span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+ 
+
+                <!-- Booking Tab -->
+
+                <div class="tab-content" id="booking-tab">
+
+                    <div class="tab-header">
+
+                        <h2><i class="fas fa-plus-circle"></i> Book New Release</h2>
+
+                    </div>
+
+                    <form class="booking-form" id="releaseForm">
+
+                        <div class="form-grid">
+
+                            <div class="form-group">
+
+                                <label for="teamName">Team Name *</label>
+
+                                <input type="text" id="teamName" required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label for="appName">Application/Feature Name *</label>
+
+                                <input type="text" id="appName" required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label for="releaseDate">Release Date *</label>
+
+                                <input type="date" id="releaseDate" required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label for="dryRunDate">Dry Run Date *</label>
+
+                                <input type="date" id="dryRunDate" required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label for="contactPerson">Contact Person *</label>
+
+                                <input type="text" id="contactPerson" required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label for="contactEmail">Contact Email *</label>
+
+                                <input type="email" id="contactEmail" required>
+
+                            </div>
+
+                        </div>
+
+ 
+
+                        <!-- Workflow Progress -->
+
+                        <div class="workflow-progress">
+
+                            <div class="progress-header">
+
+                                <h3>Release Readiness Workflow</h3>
+
+                                <div class="completion-summary">
+
+                                    <div class="completion-badge">
+
+                                        <span class="completion-percentage" id="progressText">0% Complete</span>
+
+                                        <small>Readiness Status</small>
+
+                                    </div>
+
+                                    <div class="progress-bar">
+
+                                        <div class="progress-fill" id="progressFill"></div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+ 
+
+                            <!-- Breadcrumb Workflow Steps -->
+
+                            <div class="workflow-breadcrumb">
+
+                                <button type="button" class="breadcrumb-step" data-step="1" id="breadcrumb-1">
+
+                                    <div class="breadcrumb-circle">
+
+                                        <span class="step-number">1</span>
+
+                                        <div class="step-icon">🚀</div>
+
+                                    </div>
+
+                                    <div class="breadcrumb-content">
+
+                                        <h4>Pre-Release Preparation</h4>
+
+                                        <div class="step-progress">
+
+                                            <span class="step-count" id="step1-count">0/4</span>
+
+                                        </div>
+
+                                    </div>
+
+                                </button>
+
+                               
+
+                                <div class="breadcrumb-connector"></div>
+
+                               
+
+                                <button type="button" class="breadcrumb-step" data-step="2" id="breadcrumb-2">
+
+                                    <div class="breadcrumb-circle">
+
+                                        <span class="step-number">2</span>
+
+                                        <div class="step-icon">🧪</div>
+
+                                    </div>
+
+                                    <div class="breadcrumb-content">
+
+                                        <h4>Testing & Validation</h4>
+
+                                        <div class="step-progress">
+
+                                            <span class="step-count" id="step2-count">0/4</span>
+
+                                        </div>
+
+                                    </div>
+
+                                </button>
+
+                               
+
+                                <div class="breadcrumb-connector"></div>
+
+                               
+
+                                <button type="button" class="breadcrumb-step" data-step="3" id="breadcrumb-3">
+
+                                    <div class="breadcrumb-circle">
+
+                                        <span class="step-number">3</span>
+
+                                        <div class="step-icon">📋</div>
+
+                                    </div>
+
+                                    <div class="breadcrumb-content">
+
+                                        <h4>Documentation & Communication</h4>
+
+                                        <div class="step-progress">
+
+                                            <span class="step-count" id="step3-count">0/3</span>
+
+                                        </div>
+
+                                    </div>
+
+                                </button>
+
+                            </div>
+
+ 
+
+                            <!-- Expandable Step Details -->
+
+                            <div class="workflow-details">
+
+                                <!-- Step 1: Pre-Release Preparation -->
+
+                                <div class="workflow-step" id="step-1-details">
+
+                                    <div class="step-header">
+
+                                        <h4><span class="step-number">1</span> Pre-Release Preparation Details</h4>
+
+                                    </div>
+
+                                    <div class="step-items">
+
+                                        <div class="checkbox-with-input">
+
+                                            <label class="checkbox-item">
+
+                                                <input type="checkbox" id="pomVersionIncremented">
+
+                                                <span class="checkmark"></span>
+
+                                                <span class="item-text">Pom version incremented</span>
+
+                                            </label>
+
+                                            <div class="dynamic-input" id="pomVersionIncremented-input" style="display: none;">
+
+                                                <input type="text" placeholder="Enter POM version (e.g., 1.2.3)" class="detail-input">
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="checkbox-with-input">
+
+                                            <label class="checkbox-item">
+
+                                                <input type="checkbox" id="iadpContractVersionCheck">
+
+                                                <span class="checkmark"></span>
+
+                                                <span class="item-text">IADP contract version check</span>
+
+                                            </label>
+
+                                            <div class="dynamic-input" id="iadpContractVersionCheck-input" style="display: none;">
+
+                                                <input type="text" placeholder="Enter IADP version (e.g., v2.1.0)" class="detail-input">
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="checkbox-with-input">
+
+                                            <label class="checkbox-item">
+
+                                                <input type="checkbox" id="releaseVersionInline">
+
+                                                <span class="checkmark"></span>
+
+                                                <span class="item-text">Release/* version inline → created by Release Manager</span>
+
+                                            </label>
+
+                                            <div class="dynamic-input" id="releaseVersionInline-input" style="display: none;">
+
+                                                <input type="text" placeholder="Enter artifact name/version" class="detail-input">
+
+                                            </div>
+
+                                        </div>
+
+                                        <label class="checkbox-item">
+
+                                            <input type="checkbox" id="apixInventoryUpdated">
+
+                                            <span class="checkmark"></span>
+
+                                            <span class="item-text">APIX inventory updated (if required)</span>
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+ 
+
+                                <!-- Step 2: Testing & Validation -->
+
+                                <div class="workflow-step" id="step-2-details">
+
+                                    <div class="step-header">
+
+                                        <h4><span class="step-number">2</span> Testing & Validation Details</h4>
+
+                                    </div>
+
+                                    <div class="step-items">
+
+                                        <label class="checkbox-item">
+
+                                            <input type="checkbox" id="signOffCertReleaseManager">
+
+                                            <span class="checkmark"></span>
+
+                                            <span class="item-text">Sign off on CERT (Pre-prod) - by Release Manager</span>
+
+                                        </label>
+
+                                        <label class="checkbox-item">
+
+                                            <input type="checkbox" id="signOffCertTestManager">
+
+                                            <span class="checkmark"></span>
+
+                                            <span class="item-text">Sign off on CERT (Pre-prod) - by Test Manager</span>
+
+                                        </label>
+
+                                        <div class="checkbox-with-input">
+
+                                            <label class="checkbox-item">
+
+                                                <input type="checkbox" id="purlPreparedFromCert">
+
+                                                <span class="checkmark"></span>
+
+                                                <span class="item-text">PURL prepared from CERT</span>
+
+                                            </label>
+
+                                            <div class="dynamic-input" id="purlPreparedFromCert-input" style="display: none;">
+
+                                                <input type="url" placeholder="Enter PURL (e.g., https://purl.example.com/release/v1.2.3)" class="detail-input">
+
+                                            </div>
+
+                                        </div>
+
+                                        <label class="checkbox-item">
+
+                                            <input type="checkbox" id="crQualityCheck">
+
+                                            <span class="checkmark"></span>
+
+                                            <span class="item-text">CR quality (ICE and LTTD)</span>
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+ 
+
+                                <!-- Step 3: Documentation & Communication -->
+
+                                <div class="workflow-step" id="step-3-details">
+
+                                    <div class="step-header">
+
+                                        <h4><span class="step-number">3</span> Documentation & Communication Details</h4>
+
+                                    </div>
+
+                                    <div class="step-items">
+
+                                        <div class="checkbox-with-input">
+
+                                            <label class="checkbox-item">
+
+                                                <input type="checkbox" id="componentsReposImpacted">
+
+                                                <span class="checkmark"></span>
+
+                                                <span class="item-text">Components/Repos impacted</span>
+
+                                            </label>
+
+                                            <div class="dynamic-input" id="componentsReposImpacted-input" style="display: none;">
+
+                                                <div class="multiple-inputs" id="repoInputs">
+
+                                                    <div class="input-row">
+
+                                                        <input type="text" placeholder="Enter component/repo name" class="detail-input">
+
+                                                        <button type="button" class="add-repo-btn" onclick="addRepoInput()">+</button>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="checkbox-with-input">
+
+                                            <label class="checkbox-item">
+
+                                                <input type="checkbox" id="releasePageGenerated">
+
+                                                <span class="checkmark"></span>
+
+                                                <span class="item-text">Release Page Generated</span>
+
+                                            </label>
+
+                                            <div class="dynamic-input" id="releasePageGenerated-input" style="display: none;">
+
+                                                <input type="url" placeholder="Enter release page link" class="detail-input">
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="checkbox-with-input">
+
+                                            <label class="checkbox-item">
+
+                                                <input type="checkbox" id="crCreated">
+
+                                                <span class="checkmark"></span>
+
+                                                <span class="item-text">CR created</span>
+
+                                            </label>
+
+                                            <div class="dynamic-input" id="crCreated-input" style="display: none;">
+
+                                                <input type="text" placeholder="Enter CR number/ID" class="detail-input">
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="checkbox-with-input">
+
+                                            <label class="checkbox-item">
+
+                                                <input type="checkbox" id="confluenceJira">
+
+                                                <span class="checkmark"></span>
+
+                                                <span class="item-text">Confluence/JIRA Documentation</span>
+
+                                            </label>
+
+                                            <div class="dynamic-input" id="confluenceJira-input" style="display: none;">
+
+                                                <input type="text" placeholder="Enter JIRA ID (e.g., PROJ-1234)" class="detail-input" style="margin-bottom: 8px;">
+
+                                                <input type="url" placeholder="Enter Confluence link" class="detail-input">
+
+                                            </div>
+
+                                        </div>
+
+                                        <label class="checkbox-item">
+
+                                            <input type="checkbox" id="evidencesAttached">
+
+                                            <span class="checkmark"></span>
+
+                                            <span class="item-text">All Evidences Attached to JIRA</span>
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+ 
+
+                        <div class="form-group full-width">
+
+                            <label for="additionalNotes">Additional Notes/Sequence of Steps</label>
+
+                            <textarea id="additionalNotes" rows="4" placeholder="Any additional information, special requirements, or sequence of steps..."></textarea>
+
+                        </div>
+
+ 
+
+                        <div class="conflict-warning" id="conflictWarning" style="display: none;">
+
+                            <i class="fas fa-exclamation-triangle"></i>
+
+                            <div>
+
+                                <strong>Date Conflict Detected!</strong>
+
+                                <p id="conflictMessage"></p>
+
+                                <div class="suggested-dates" id="suggestedDates"></div>
+
+                            </div>
+
+                        </div>
+
+ 
+
+                        <div class="form-actions-enhanced">
+
+                            <div class="action-section">
+
+                                <h4><i class="fas fa-calendar-check"></i> Validate & Book Release</h4>
+
+                                <p>Complete the workflow above, then validate availability and book your release</p>
+
+                                <div class="action-buttons">
+
+                                    <button type="button" class="btn-secondary enhanced" id="checkAvailability">
+
+                                        <i class="fas fa-search"></i>
+
+                                        <span>Check Availability</span>
+
+                                        <small>Verify no conflicts exist</small>
+
+                                    </button>
+
+                                    <button type="submit" class="btn-primary enhanced">
+
+                                        <i class="fas fa-rocket"></i>
+
+                                        <span>Book Release</span>
+
+                                        <small>Schedule your release</small>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+ 
+
+                <!-- Dashboard Tab -->
+
+                <div class="tab-content" id="dashboard-tab">
+
+                    <div class="tab-header">
+
+                        <h2><i class="fas fa-chart-bar"></i> Release Dashboard</h2>
+
+                    </div>
+
+                    <div class="dashboard-content">
+
+                        <div class="releases-list">
+
+                            <h3>Upcoming Releases</h3>
+
+                            <div id="upcomingReleases" class="releases-container">
+
+                                <!-- Releases will be populated here -->
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+ 
+
+    <!-- Release Details Modal -->
+
+    <div class="modal" id="releaseModal">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h3 id="modalTitle">Release Details</h3>
+
+                <button class="close-btn" id="closeModal">
+
+                    <i class="fas fa-times"></i>
+
+                </button>
+
+            </div>
+
+            <div class="modal-body" id="modalBody">
+
+                <!-- Release details will be populated here -->
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button class="btn-primary" id="editRelease">
+
+                    <i class="fas fa-edit"></i> Edit Release
+
+                </button>
+
+                <button class="btn-danger" id="deleteRelease">
+
+                    <i class="fas fa-trash"></i> Delete Release
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+ 
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
+
+ 

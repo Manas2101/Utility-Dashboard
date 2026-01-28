@@ -32,6 +32,10 @@ import urllib.parse
 
 from services.github_pr_service import create_utility_pr
 
+# Import Release App Blueprint from external folder
+
+from release_connector import release_bp
+
  
 
 APP_NAME = os.getenv("AUTOMATION_APP_NAME", "automation")
@@ -61,6 +65,20 @@ app = Flask(__name__,
             static_folder="static",
 
             template_folder="templates")
+
+ 
+
+# Register Release App Blueprint (if successfully imported)
+
+if release_bp is not None:
+
+    app.register_blueprint(release_bp, url_prefix=f"/{APP_NAME}/CDMS-Releases")
+
+    print("✅ Release App integrated at /automation/CDMS-Releases")
+
+else:
+
+    print("⚠️ Release App not available - update path in release_connector.py")
 
  
 
