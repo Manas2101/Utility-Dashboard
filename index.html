@@ -352,7 +352,7 @@
 
           <h2 class="category-title">DATAP Utility Dashboard <span class="expand-indicator"><i class="fas fa-chevron-down"></i></span></h2>
 
-          <div class="header-menu" id="headerMenu" style="position:absolute;right:16px;top:16px;">
+          <div class="header-menu" id="headerMenu" style="position:absolute;right:16px;top:16px;display:none;">
 
             <div class="menu-trigger" id="menuTrigger" title="Quick actions" aria-haspopup="true" aria-expanded="false" aria-controls="menuPanel">
 
@@ -634,9 +634,9 @@
 
         datapCard.addEventListener('click', (e) => {
 
-          // Don't toggle if clicking on a utility card link
+          // Don't toggle if clicking on a utility card link or menu
 
-          if (e.target.tagName === 'A' || e.target.closest('a.utility-mini-card')) {
+          if (e.target.tagName === 'A' || e.target.closest('a.utility-mini-card') || e.target.closest('.header-menu')) {
 
             return;
 
@@ -647,6 +647,26 @@
           console.log('Toggling DATAP Utilities card');
 
           datapCard.classList.toggle('expanded');
+
+          
+
+          // Show/hide menu button based on expanded state
+
+          const headerMenu = document.getElementById('headerMenu');
+
+          if (headerMenu) {
+
+            if (datapCard.classList.contains('expanded')) {
+
+              headerMenu.style.display = 'block';
+
+            } else {
+
+              headerMenu.style.display = 'none';
+
+            }
+
+          }
 
         });
 
@@ -838,7 +858,17 @@
 
               const item = document.createElement('a');
 
-              item.href = `/{{ app_name }}/utility/${util.id}`;
+              // Link to integrated release calendar if it's the Release Manager Portal
+
+              if (util.title && util.title.toLowerCase().includes('release manager portal')) {
+
+                item.href = `/{{ app_name }}/CDMS-Releases/`;
+
+              } else {
+
+                item.href = `/{{ app_name }}/utility/${util.id}`;
+
+              }
 
               item.className = 'subcategory-item';
 
