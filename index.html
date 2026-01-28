@@ -336,75 +336,9 @@
 
     <div class="page-header">
 
-      <h1 class="head-class"><i class="fas fa-cogs icon"></i>DATAP Automation Utilities Dashboard</h1>
+      <h1 class="head-class"><i class="fas fa-cogs icon"></i>DATAP</h1>
 
       <p class="subtitle">Centralized hub for automation utilities, release management, and DevOps metrics</p>
-
-      <a href="/{{ app_name }}/add" class="add-utility-btn" title="Add New Utility">
-
-        <i class="fas fa-plus"></i>
-
-        <span>Add Utility</span>
-
-      </a>
-
-      <div class="header-menu" id="headerMenu">
-
-        <div class="menu-trigger" id="menuTrigger" title="Quick actions" aria-haspopup="true" aria-expanded="false" aria-controls="menuPanel">
-
-          <i class="fa fa-grip"></i>
-
-        </div>
-
-        <div class="menu-panel" id="menuPanel" role="menu" aria-hidden="true" aria-label="Automation utilities quick actions">
-
-          <div class="menu-grid" role="group" aria-label="Primary actions">
-
-            <button type="button" class="menu-item add" data-action="add" title="Add Utility" aria-label="Add Utility">
-
-              <i class="fa fa-plus"></i>
-
-              <span>Add</span>
-
-            </button>
-
-            <button type="button" class="menu-item guide" data-action="guide" title="Guide (placeholder)" aria-label="Guide">
-
-              <i class="fa fa-book"></i>
-
-              <span>Guide</span>
-
-            </button>
-
-            <button type="button" class="menu-item refresh" data-action="refresh" title="Refresh Data" aria-label="Refresh Data">
-
-              <i class="fa fa-rotate"></i>
-
-              <span>Refresh</span>
-
-            </button>
-
-            <a href="/{{ app_name }}/home.html" class="menu-item home" title="Dashboard" aria-label="Dashboard" data-action="home">
-
-              <i class="fa fa-home"></i>
-
-              <span>Home</span>
-
-            </a>
-
-          </div>
-
-          <div class="menu-meta">
-
-            <span><i class="fa fa-lightbulb"></i>v0.1</span>
-
-            <span><i class="fa fa-keyboard"></i>Esc to close</span>
-
-          </div>
-
-        </div>
-
-      </div>
 
     </div>
 
@@ -416,7 +350,63 @@
 
           <div class="category-icon"><i class="fas fa-tools"></i></div>
 
-          <h2 class="category-title">DATAP Utilities <span class="expand-indicator"><i class="fas fa-chevron-down"></i></span></h2>
+          <h2 class="category-title">DATAP Utility Dashboard <span class="expand-indicator"><i class="fas fa-chevron-down"></i></span></h2>
+
+          <div class="header-menu" id="headerMenu" style="position:absolute;right:16px;top:16px;">
+
+            <div class="menu-trigger" id="menuTrigger" title="Quick actions" aria-haspopup="true" aria-expanded="false" aria-controls="menuPanel">
+
+              <i class="fa fa-grip"></i>
+
+            </div>
+
+            <div class="menu-panel" id="menuPanel" role="menu" aria-hidden="true" aria-label="Automation utilities quick actions">
+
+              <div class="menu-grid" role="group" aria-label="Primary actions">
+
+                <button type="button" class="menu-item add" data-action="add" title="Add Utility" aria-label="Add Utility">
+
+                  <i class="fa fa-plus"></i>
+
+                  <span>Add</span>
+
+                </button>
+
+                <button type="button" class="menu-item guide" data-action="guide" title="Guide (placeholder)" aria-label="Guide">
+
+                  <i class="fa fa-book"></i>
+
+                  <span>Guide</span>
+
+                </button>
+
+                <button type="button" class="menu-item refresh" data-action="refresh" title="Refresh Data" aria-label="Refresh Data">
+
+                  <i class="fa fa-rotate"></i>
+
+                  <span>Refresh</span>
+
+                </button>
+
+                <a href="/{{ app_name }}/home.html" class="menu-item home" title="Dashboard" aria-label="Dashboard" data-action="home">
+
+                  <i class="fa fa-home"></i>
+
+                  <span>Home</span>
+
+                </a>
+
+              </div>
+
+              <div class="menu-meta">
+
+                <span><i class="fa fa-lightbulb"></i>v0.1</span>
+
+              </div>
+
+            </div>
+
+          </div>
 
         </div>
 
