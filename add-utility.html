@@ -754,9 +754,25 @@
 
           const resp = await fetch(url, {method: method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
 
-          if(resp.ok){ saved = true; respJson = await resp.json(); }
+          if(resp.ok){ 
 
-        } catch(_) {}
+            saved = true; 
+
+            respJson = await resp.json(); 
+
+            console.log('Backend response:', respJson);
+
+          } else {
+
+            console.error('Backend error:', resp.status, await resp.text());
+
+          }
+
+        } catch(err) {
+
+          console.error('Request failed:', err);
+
+        }
 
  
 
