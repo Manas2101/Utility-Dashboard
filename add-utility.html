@@ -586,6 +586,68 @@
 
           
 
+          // Show preview in edit mode
+
+          const previewData = {
+
+            id: utility.id,
+
+            title: utility.title,
+
+            icon_url: utility.icon_url,
+
+            description: utility.description,
+
+            developer: utility.developer,
+
+            developer_source: utility.developer_source,
+
+            server_url: utility.server_url,
+
+            source_code_url: utility.source_code_url,
+
+            type: utility.type,
+
+            status: utility.status,
+
+            source_language: utility.source_language,
+
+            committer: utility.committer,
+
+            playbook: utility.playbook,
+
+            likes: utility.likes || 0
+
+          };
+
+          
+
+          preview.textContent = JSON.stringify(previewData, null, 2);
+
+          previewBlock.style.display = 'block';
+
+          
+
+          // Show result block with repository link in edit mode
+
+          resultList.innerHTML = '';
+
+          const repoUrl = '{{ repo_url|default("") }}';
+
+          if (repoUrl) {
+
+            const li = document.createElement('li');
+
+            li.innerHTML = `Repository: <a href="${repoUrl}" target="_blank" rel="noopener">${repoUrl}</a>`;
+
+            resultList.appendChild(li);
+
+            resultBlock.style.display = 'block';
+
+          }
+
+          
+
           // Clear sessionStorage after loading
 
           sessionStorage.removeItem('editUtility');
