@@ -12,9 +12,101 @@ class ReleaseManager {
 
         this.dataFile = 'releases.json';
 
+        this.repositories = []; // Store added repositories
+
        
 
+        this.serverAvailable = false; // Track server status
+
         this.init();
+
+    }
+
+ 
+
+    async checkServerStatus() {
+
+        try {
+
+            console.log('🔍 Checking server status...');
+
+            const response = await fetch('/api/releases', {
+
+                method: 'GET',
+
+                timeout: 3000 // 3 second timeout
+
+            });
+
+           
+
+            if (response.ok) {
+
+                this.serverAvailable = true;
+
+                this.updateServerStatusUI(true);
+
+                console.log('✅ Server is available');
+
+            } else {
+
+                throw new Error('Server responded with error');
+
+            }
+
+        } catch (error) {
+
+            this.serverAvailable = false;
+
+            this.updateServerStatusUI(false);
+
+            console.log('❌ Server not available:', error.message);
+
+        }
+
+    }
+
+ 
+
+    updateServerStatusUI(isOnline) {
+
+        const serverStatus = document.getElementById('serverStatus');
+
+        const statusIndicator = document.getElementById('statusIndicator');
+
+        const statusText = document.getElementById('statusText');
+
+        const serverMode = document.getElementById('serverMode');
+
+        const fallbackMode = document.getElementById('fallbackMode');
+
+ 
+
+        if (isOnline) {
+
+            serverStatus.className = 'server-status online';
+
+            statusIndicator.textContent = '✅';
+
+            statusText.textContent = 'Server Online - Auto-sync enabled';
+
+            serverMode.style.display = 'block';
+
+            fallbackMode.style.display = 'none';
+
+        } else {
+
+            serverStatus.className = 'server-status offline';
+
+            statusIndicator.textContent = '❌';
+
+            statusText.textContent = 'Server Offline - Manual mode';
+
+            serverMode.style.display = 'none';
+
+            fallbackMode.style.display = 'block';
+
+        }
 
     }
 
@@ -23,6 +115,8 @@ class ReleaseManager {
     async init() {
 
         console.log('Initializing Release Manager...');
+
+        await this.checkServerStatus();
 
         await this.loadReleases();
 
@@ -308,6 +402,39 @@ class ReleaseManager {
 
             this.refreshData();
 
+        });
+
+ 
+
+        // Repository management event listeners
+
+        document.getElementById('addRepoBtn').addEventListener('click', () => {
+
+            this.addRepository();
+
+        });
+
+ 
+
+        document.getElementById('newRepoName').addEventListener('keypress', (e) => {
+
+            if (e.key === 'Enter') {
+
+                this.addRepository();
+
+            }
+
+        });
+
+        // Documentation checkboxes event listeners
+        const docCheckboxes = ['releasePageGenerated', 'crCreated', 'crQualityCheck'];
+        docCheckboxes.forEach(checkboxId => {
+            const checkbox = document.getElementById(checkboxId);
+            if (checkbox) {
+                checkbox.addEventListener('change', () => {
+                    this.updateWorkflowProgress();
+                });
+            }
         });
 
  
@@ -1474,8 +1601,6 @@ class ReleaseManager {
 
         }
 
- 
-
         console.log('Breadcrumb handlers set up:', { step1, step2, step3 });
 
     }
@@ -1484,27 +1609,33 @@ class ReleaseManager {
 
     updateWorkflowProgress() {
 
-        const checkboxes = [
+        // Count repository workflow progress
 
-            // Step 1: Pre-Release Preparation
+        let totalRepoItems = 0;
 
-            'pomVersionIncremented', 'iadpContractVersionCheck', 'releaseVersionInline', 'apixInventoryUpdated',
+        let completedRepoItems = 0;
 
-            // Step 2: Testing & Validation
+       
 
-            'signOffCertReleaseManager', 'signOffCertTestManager', 'purlPreparedFromCert', 'crQualityCheck',
+        this.repositories.forEach(repo => {
 
-            // Step 3: Documentation & Communication
+            const preReleaseCompleted = Object.values(repo.preReleaseData).filter(Boolean).length;
 
-            'componentsReposImpacted', 'releasePageGenerated', 'crCreated', 'confluenceJira', 'evidencesAttached'
+            const testingCompleted = Object.values(repo.testingData).filter(Boolean).length;
 
-        ];
+            completedRepoItems += preReleaseCompleted + testingCompleted;
 
- 
+            totalRepoItems += 7; // 4 pre-release + 3 testing items per repo
 
-        const totalItems = checkboxes.length;
+        });
 
-        const completedItems = checkboxes.filter(checkboxId => {
+       
+
+        // Count documentation progress
+
+        const docCheckboxes = ['releasePageGenerated', 'crCreated', 'crQualityCheck'];
+
+        const completedDocItems = docCheckboxes.filter(checkboxId => {
 
             const checkbox = document.getElementById(checkboxId);
 
@@ -1512,13 +1643,19 @@ class ReleaseManager {
 
         }).length;
 
- 
+       
 
-        const progressPercentage = Math.round((completedItems / totalItems) * 100);
+        const totalItems = totalRepoItems + docCheckboxes.length;
+
+        const completedItems = completedRepoItems + completedDocItems;
+
+        const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
        
 
-        const progressFill = document.getElementById('workflowProgress');
+        // Update overall progress
+
+        const progressFill = document.getElementById('progressFill');
 
         const progressText = document.getElementById('progressText');
 
@@ -1536,37 +1673,85 @@ class ReleaseManager {
 
             progressText.textContent = `${progressPercentage}% Complete`;
 
-           
+        }
 
-            // Update completion badge color based on percentage
+ 
 
-            const completionBadge = progressText.closest('.completion-badge');
+        // Update step counters
 
-            if (completionBadge) {
+        this.updateStepCounters(completedDocItems);
 
-                // Remove existing status classes
+    }
 
-                completionBadge.classList.remove('low', 'medium', 'high', 'complete');
+    updateStepCounters(completedDocItems) {
 
-               
+        // Update repository workflows counter
 
-                // Add appropriate status class
+        const step1Count = document.getElementById('step1-count');
 
-                if (progressPercentage === 100) {
+        if (step1Count) {
 
-                    completionBadge.classList.add('complete');
+            step1Count.textContent = `${this.repositories.length} repos`;
 
-                } else if (progressPercentage >= 75) {
+        }
 
-                    completionBadge.classList.add('high');
+        // Update documentation counter 
 
-                } else if (progressPercentage >= 50) {
+        const step2Count = document.getElementById('step2-count');
 
-                    completionBadge.classList.add('medium');
+        if (step2Count) {
+
+            step2Count.textContent = `${completedDocItems}/3`;
+
+        }
+
+        // Update breadcrumb visual status
+
+        this.updateBreadcrumbStatus(completedDocItems);
+
+    }
+
+    updateBreadcrumbStatus(completedDocItems) {
+
+        const breadcrumb1 = document.getElementById('breadcrumb-1');
+
+        const breadcrumb2 = document.getElementById('breadcrumb-2');
+
+        if (breadcrumb1) {
+
+            // Calculate repo completion
+
+            let totalRepoProgress = 0;
+
+            if (this.repositories.length > 0) {
+
+                this.repositories.forEach(repo => {
+
+                    const preReleaseCompleted = Object.values(repo.preReleaseData).filter(Boolean).length;
+
+                    const testingCompleted = Object.values(repo.testingData).filter(Boolean).length;
+
+                    totalRepoProgress += (preReleaseCompleted + testingCompleted) / 7;
+
+                });
+
+                const avgRepoProgress = totalRepoProgress / this.repositories.length;
+
+                if (avgRepoProgress === 1) {
+
+                    breadcrumb1.classList.add('completed');
+
+                    breadcrumb1.classList.remove('in-progress');
+
+                } else if (avgRepoProgress > 0) {
+
+                    breadcrumb1.classList.add('in-progress');
+
+                    breadcrumb1.classList.remove('completed');
 
                 } else {
 
-                    completionBadge.classList.add('low');
+                    breadcrumb1.classList.remove('completed', 'in-progress');
 
                 }
 
@@ -1574,17 +1759,29 @@ class ReleaseManager {
 
         }
 
- 
+        if (breadcrumb2) {
 
-        // Update step completion status
+            if (completedDocItems === 3) {
 
-        this.updateStepStatus();
+                breadcrumb2.classList.add('completed');
 
-        this.updateBreadcrumbProgress();
+                breadcrumb2.classList.remove('in-progress');
+
+            } else if (completedDocItems > 0) {
+
+                breadcrumb2.classList.add('in-progress');
+
+                breadcrumb2.classList.remove('completed');
+
+            } else {
+
+                breadcrumb2.classList.remove('completed', 'in-progress');
+
+            }
+
+        }
 
     }
-
- 
 
     showStepDetails(stepNumber) {
 
@@ -2802,9 +2999,15 @@ class ReleaseManager {
 
         // Use the data source with more releases (most up-to-date)
 
-        if (fileReleases.length > localReleases.length) {
+        if (localReleases.length > fileReleases.length) {
 
-            console.log('📄 File has more releases, using file data');
+            console.log('💾 localStorage has more releases, using localStorage data:', localReleases.length);
+
+            this.releases = localReleases;
+
+        } else if (fileReleases.length > 0) {
+
+            console.log('📄 File has more/equal releases, using file data:', fileReleases.length);
 
             this.releases = fileReleases;
 
@@ -3487,6 +3690,360 @@ class ReleaseManager {
             console.error('❌ Refresh error:', error);
 
             alert('⚠️ Error refreshing data. Check console for details.');
+
+        }
+
+    }
+
+ 
+
+    // Repository Management Methods
+
+    addRepository() {
+
+        const repoInput = document.getElementById('newRepoName');
+
+        const repoName = repoInput.value.trim();
+
+       
+
+        if (!repoName) {
+
+            alert('Please enter a repository/component name');
+
+            return;
+
+        }
+
+       
+
+        if (this.repositories.some(repo => repo.name === repoName)) {
+
+            alert('Repository already added');
+
+            return;
+
+        }
+
+       
+
+        const repo = {
+
+            id: Date.now().toString(),
+
+            name: repoName,
+
+            preReleaseData: {
+
+                pomVersionIncremented: false,
+
+                iadpContractVersionCheck: false,
+
+                releaseVersionInline: false,
+
+                apixInventoryUpdated: false
+
+            },
+
+            testingData: {
+
+                signOffCertReleaseManager: false,
+
+                signOffCertTestManager: false,
+
+                purlPreparedFromCert: false
+
+            }
+
+        };
+
+       
+
+        this.repositories.push(repo);
+
+        repoInput.value = '';
+
+        this.renderRepositoryList();
+
+        this.renderRepositoryWorkflows();
+
+        this.updateWorkflowProgress();
+
+    }
+
+   
+
+    removeRepository(repoId) {
+
+        this.repositories = this.repositories.filter(repo => repo.id !== repoId);
+
+        this.renderRepositoryList();
+
+        this.renderRepositoryWorkflows();
+
+        this.updateWorkflowProgress();
+
+    }
+
+   
+
+    renderRepositoryList() {
+
+        const repoList = document.getElementById('repoList');
+
+       
+
+        if (this.repositories.length === 0) {
+
+            repoList.innerHTML = '';
+
+            return;
+
+        }
+
+       
+
+        repoList.innerHTML = this.repositories.map(repo => `
+
+            <div class="repo-item">
+
+                <span class="repo-name">${repo.name}</span>
+
+                <button type="button" class="remove-repo-btn" onclick="window.releaseManager.removeRepository('${repo.id}')">
+
+                    Remove
+
+                </button>
+
+            </div>
+
+        `).join('');
+
+    }
+
+   
+
+    renderRepositoryWorkflows() {
+
+        const repoWorkflows = document.getElementById('repoWorkflows');
+
+       
+
+        if (this.repositories.length === 0) {
+
+            repoWorkflows.innerHTML = `
+
+                <div class="no-repos-message">
+
+                    <p>📦 Add repositories above to see their workflow steps</p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+       
+
+        repoWorkflows.innerHTML = this.repositories.map(repo => `
+
+            <div class="repo-workflow-section">
+
+                <div class="repo-workflow-header">
+
+                    <h4 class="repo-workflow-title">📦 ${repo.name}</h4>
+
+                    <span class="repo-progress" id="repo-progress-${repo.id}">0/8 completed</span>
+
+                </div>
+
+                <div class="workflow-phases">
+
+                    <div class="workflow-phase">
+
+                        <h5 class="phase-title">🚀 Pre-Release Preparation</h5>
+
+                        <div class="step-items">
+
+                            <div class="checkbox-with-input">
+
+                                <label class="checkbox-item">
+
+                                    <input type="checkbox" id="pom-${repo.id}" onchange="window.releaseManager.updateRepoData('${repo.id}', 'preReleaseData', 'pomVersionIncremented', this.checked); window.releaseManager.toggleInput('pom-${repo.id}-input', this.checked)">
+
+                                    <span class="checkmark"></span>
+
+                                    <span class="item-text">POM version incremented</span>
+
+                                </label>
+
+                                <div class="dynamic-input" id="pom-${repo.id}-input" style="display: none;">
+
+                                    <input type="text" placeholder="Enter POM version (e.g., 1.2.3)" class="detail-input">
+
+                                </div>
+
+                            </div>
+
+                            <label class="checkbox-item">
+
+                                <input type="checkbox" id="iadp-${repo.id}" onchange="window.releaseManager.updateRepoData('${repo.id}', 'preReleaseData', 'iadpContractVersionCheck', this.checked)">
+
+                                <span class="checkmark"></span>
+
+                                <span class="item-text">IADP contract version check</span>
+
+                            </label>
+
+                            <div class="checkbox-with-input">
+
+                                <label class="checkbox-item">
+
+                                    <input type="checkbox" id="release-${repo.id}" onchange="window.releaseManager.updateRepoData('${repo.id}', 'preReleaseData', 'releaseVersionInline', this.checked); window.releaseManager.toggleInput('release-${repo.id}-input', this.checked)">
+
+                                    <span class="checkmark"></span>
+
+                                    <span class="item-text">Release version inline with IADP</span>
+
+                                </label>
+
+                                <div class="dynamic-input" id="release-${repo.id}-input" style="display: none;">
+
+                                    <input type="text" placeholder="Enter release version" class="detail-input">
+
+                                </div>
+
+                            </div>
+
+                            <label class="checkbox-item">
+
+                                <input type="checkbox" id="apix-${repo.id}" onchange="window.releaseManager.updateRepoData('${repo.id}', 'preReleaseData', 'apixInventoryUpdated', this.checked)">
+
+                                <span class="checkmark"></span>
+
+                                <span class="item-text">APIX inventory updated</span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                    <div class="workflow-phase">
+
+                        <h5 class="phase-title">🧪 Testing & Validation</h5>
+
+                        <div class="step-items">
+
+                            <label class="checkbox-item">
+
+                                <input type="checkbox" id="cert-rm-${repo.id}" onchange="window.releaseManager.updateRepoData('${repo.id}', 'testingData', 'signOffCertReleaseManager', this.checked)">
+
+                                <span class="checkmark"></span>
+
+                                <span class="item-text">Sign off CERT - Release Manager</span>
+
+                            </label>
+
+                            <label class="checkbox-item">
+
+                                <input type="checkbox" id="cert-tm-${repo.id}" onchange="window.releaseManager.updateRepoData('${repo.id}', 'testingData', 'signOffCertTestManager', this.checked)">
+
+                                <span class="checkmark"></span>
+
+                                <span class="item-text">Sign off CERT - Test Manager</span>
+
+                            </label>
+
+                            <div class="checkbox-with-input">
+
+                                <label class="checkbox-item">
+
+                                    <input type="checkbox" id="purl-${repo.id}" onchange="window.releaseManager.updateRepoData('${repo.id}', 'testingData', 'purlPreparedFromCert', this.checked); window.releaseManager.toggleInput('purl-${repo.id}-input', this.checked)">
+
+                                    <span class="checkmark"></span>
+
+                                    <span class="item-text">PURL prepared from CERT</span>
+
+                                </label>
+
+                                <div class="dynamic-input" id="purl-${repo.id}-input" style="display: none;">
+
+                                    <input type="text" placeholder="Enter PURL details" class="detail-input">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `).join('');
+
+    }
+
+   
+
+    updateRepoData(repoId, section, field, value) {
+
+        const repo = this.repositories.find(r => r.id === repoId);
+
+        if (repo) {
+
+            repo[section][field] = value;
+
+            this.updateRepositoryProgress(repoId);
+
+            this.updateWorkflowProgress();
+
+        }
+
+    }
+
+   
+
+    updateRepositoryProgress(repoId) {
+
+        const repo = this.repositories.find(r => r.id === repoId);
+
+        if (!repo) return;
+
+       
+
+        const preReleaseCompleted = Object.values(repo.preReleaseData).filter(Boolean).length;
+
+        const testingCompleted = Object.values(repo.testingData).filter(Boolean).length;
+
+        const totalCompleted = preReleaseCompleted + testingCompleted;
+
+       
+
+        const progressElement = document.getElementById(`repo-progress-${repoId}`);
+
+        if (progressElement) {
+
+            progressElement.textContent = `${totalCompleted}/7 completed`;
+
+        }
+
+    }
+
+   
+
+    toggleInput(inputId, show) {
+
+        const inputElement = document.getElementById(inputId);
+
+        if (inputElement) {
+
+            inputElement.style.display = show ? 'block' : 'none';
 
         }
 

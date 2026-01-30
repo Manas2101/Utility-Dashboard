@@ -94,25 +94,53 @@
 
                     <h3>Data Management</h3>
 
-                    <button class="data-btn" id="exportData">
+                    <div class="server-status" id="serverStatus">
 
-                        <i class="fas fa-download"></i> Export JSON
+                        <span class="status-indicator" id="statusIndicator">🔄</span>
 
-                    </button>
+                        <span class="status-text" id="statusText">Checking server...</span>
 
-                    <button class="data-btn" id="importData">
+                    </div>
 
-                        <i class="fas fa-upload"></i> Import JSON
+                   
 
-                    </button>
+                    <!-- Server Mode (Hidden when server available) -->
 
-                    <input type="file" id="fileInput" accept=".json" style="display: none;">
+                    <div class="server-mode" id="serverMode" style="display: none;">
 
-                    <button class="data-btn" id="refreshData">
+                        <p class="mode-description">✅ <strong>Server Mode:</strong> Data automatically syncs to releases.json</p>
 
-                        <i class="fas fa-sync"></i> Refresh Data
+                    </div>
 
-                    </button>
+                   
+
+                    <!-- Fallback Mode (Shown when server unavailable) -->
+
+                    <div class="fallback-mode" id="fallbackMode" style="display: none;">
+
+                        <p class="mode-description">⚠️ <strong>Fallback Mode:</strong> Manual data management required</p>
+
+                        <button class="data-btn" id="exportData">
+
+                            <i class="fas fa-download"></i> Export JSON
+
+                        </button>
+
+                        <button class="data-btn" id="importData">
+
+                            <i class="fas fa-upload"></i> Import JSON
+
+                        </button>
+
+                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+
+                        <button class="data-btn" id="refreshData">
+
+                            <i class="fas fa-sync"></i> Refresh Data
+
+                        </button>
+
+                    </div>
 
                 </div>
 
@@ -284,6 +312,30 @@
 
  
 
+                            <!-- Repository Management -->
+
+                            <div class="repo-management">
+
+                                <h3>Components/Repositories Impacted</h3>
+
+                                <div class="repo-input-section">
+
+                                    <div class="repo-input-group">
+
+                                        <input type="text" id="newRepoName" placeholder="Enter repository name or Git URL (e.g., https://github.com/user/repo)" class="repo-input">
+
+                                        <button type="button" id="addRepoBtn" class="add-repo-btn">+ Add Repository</button>
+
+                                    </div>
+
+                                    <div id="repoList" class="repo-list"></div>
+
+                                </div>
+
+                            </div>
+
+ 
+
                             <!-- Breadcrumb Workflow Steps -->
 
                             <div class="workflow-breadcrumb">
@@ -294,17 +346,17 @@
 
                                         <span class="step-number">1</span>
 
-                                        <div class="step-icon">🚀</div>
+                                        <div class="step-icon">📦</div>
 
                                     </div>
 
                                     <div class="breadcrumb-content">
 
-                                        <h4>Pre-Release Preparation</h4>
+                                        <h4>Repository Workflows</h4>
 
                                         <div class="step-progress">
 
-                                            <span class="step-count" id="step1-count">0/4</span>
+                                            <span class="step-count" id="step1-count">0 repos</span>
 
                                         </div>
 
@@ -324,36 +376,6 @@
 
                                         <span class="step-number">2</span>
 
-                                        <div class="step-icon">🧪</div>
-
-                                    </div>
-
-                                    <div class="breadcrumb-content">
-
-                                        <h4>Testing & Validation</h4>
-
-                                        <div class="step-progress">
-
-                                            <span class="step-count" id="step2-count">0/4</span>
-
-                                        </div>
-
-                                    </div>
-
-                                </button>
-
-                               
-
-                                <div class="breadcrumb-connector"></div>
-
-                               
-
-                                <button type="button" class="breadcrumb-step" data-step="3" id="breadcrumb-3">
-
-                                    <div class="breadcrumb-circle">
-
-                                        <span class="step-number">3</span>
-
                                         <div class="step-icon">📋</div>
 
                                     </div>
@@ -364,7 +386,7 @@
 
                                         <div class="step-progress">
 
-                                            <span class="step-count" id="step3-count">0/3</span>
+                                            <span class="step-count" id="step2-count">0/3</span>
 
                                         </div>
 
@@ -380,87 +402,25 @@
 
                             <div class="workflow-details">
 
-                                <!-- Step 1: Pre-Release Preparation -->
+                                <!-- Step 1: Repository Workflows -->
 
                                 <div class="workflow-step" id="step-1-details">
 
                                     <div class="step-header">
 
-                                        <h4><span class="step-number">1</span> Pre-Release Preparation Details</h4>
+                                        <h4><span class="step-number">1</span> Repository Workflows</h4>
+
+                                        <p class="step-description">Complete Pre-Release and Testing steps for each repository</p>
 
                                     </div>
 
-                                    <div class="step-items">
+                                    <div id="repoWorkflows" class="repo-workflows">
 
-                                        <div class="checkbox-with-input">
+                                        <div class="no-repos-message">
 
-                                            <label class="checkbox-item">
-
-                                                <input type="checkbox" id="pomVersionIncremented">
-
-                                                <span class="checkmark"></span>
-
-                                                <span class="item-text">Pom version incremented</span>
-
-                                            </label>
-
-                                            <div class="dynamic-input" id="pomVersionIncremented-input" style="display: none;">
-
-                                                <input type="text" placeholder="Enter POM version (e.g., 1.2.3)" class="detail-input">
-
-                                            </div>
+                                            <p>📦 Add repositories above to see their workflow steps</p>
 
                                         </div>
-
-                                        <div class="checkbox-with-input">
-
-                                            <label class="checkbox-item">
-
-                                                <input type="checkbox" id="iadpContractVersionCheck">
-
-                                                <span class="checkmark"></span>
-
-                                                <span class="item-text">IADP contract version check</span>
-
-                                            </label>
-
-                                            <div class="dynamic-input" id="iadpContractVersionCheck-input" style="display: none;">
-
-                                                <input type="text" placeholder="Enter IADP version (e.g., v2.1.0)" class="detail-input">
-
-                                            </div>
-
-                                        </div>
-
-                                        <div class="checkbox-with-input">
-
-                                            <label class="checkbox-item">
-
-                                                <input type="checkbox" id="releaseVersionInline">
-
-                                                <span class="checkmark"></span>
-
-                                                <span class="item-text">Release/* version inline → created by Release Manager</span>
-
-                                            </label>
-
-                                            <div class="dynamic-input" id="releaseVersionInline-input" style="display: none;">
-
-                                                <input type="text" placeholder="Enter artifact name/version" class="detail-input">
-
-                                            </div>
-
-                                        </div>
-
-                                        <label class="checkbox-item">
-
-                                            <input type="checkbox" id="apixInventoryUpdated">
-
-                                            <span class="checkmark"></span>
-
-                                            <span class="item-text">APIX inventory updated (if required)</span>
-
-                                        </label>
 
                                     </div>
 
@@ -468,115 +428,19 @@
 
  
 
-                                <!-- Step 2: Testing & Validation -->
+                                <!-- Step 2: Documentation & Communication -->
 
                                 <div class="workflow-step" id="step-2-details">
 
                                     <div class="step-header">
 
-                                        <h4><span class="step-number">2</span> Testing & Validation Details</h4>
+                                        <h4><span class="step-number">2</span> Documentation & Communication</h4>
+
+                                        <p class="step-description">Overall documentation for all repositories</p>
 
                                     </div>
 
                                     <div class="step-items">
-
-                                        <label class="checkbox-item">
-
-                                            <input type="checkbox" id="signOffCertReleaseManager">
-
-                                            <span class="checkmark"></span>
-
-                                            <span class="item-text">Sign off on CERT (Pre-prod) - by Release Manager</span>
-
-                                        </label>
-
-                                        <label class="checkbox-item">
-
-                                            <input type="checkbox" id="signOffCertTestManager">
-
-                                            <span class="checkmark"></span>
-
-                                            <span class="item-text">Sign off on CERT (Pre-prod) - by Test Manager</span>
-
-                                        </label>
-
-                                        <div class="checkbox-with-input">
-
-                                            <label class="checkbox-item">
-
-                                                <input type="checkbox" id="purlPreparedFromCert">
-
-                                                <span class="checkmark"></span>
-
-                                                <span class="item-text">PURL prepared from CERT</span>
-
-                                            </label>
-
-                                            <div class="dynamic-input" id="purlPreparedFromCert-input" style="display: none;">
-
-                                                <input type="url" placeholder="Enter PURL (e.g., https://purl.example.com/release/v1.2.3)" class="detail-input">
-
-                                            </div>
-
-                                        </div>
-
-                                        <label class="checkbox-item">
-
-                                            <input type="checkbox" id="crQualityCheck">
-
-                                            <span class="checkmark"></span>
-
-                                            <span class="item-text">CR quality (ICE and LTTD)</span>
-
-                                        </label>
-
-                                    </div>
-
-                                </div>
-
- 
-
-                                <!-- Step 3: Documentation & Communication -->
-
-                                <div class="workflow-step" id="step-3-details">
-
-                                    <div class="step-header">
-
-                                        <h4><span class="step-number">3</span> Documentation & Communication Details</h4>
-
-                                    </div>
-
-                                    <div class="step-items">
-
-                                        <div class="checkbox-with-input">
-
-                                            <label class="checkbox-item">
-
-                                                <input type="checkbox" id="componentsReposImpacted">
-
-                                                <span class="checkmark"></span>
-
-                                                <span class="item-text">Components/Repos impacted</span>
-
-                                            </label>
-
-                                            <div class="dynamic-input" id="componentsReposImpacted-input" style="display: none;">
-
-                                                <div class="multiple-inputs" id="repoInputs">
-
-                                                    <div class="input-row">
-
-                                                        <input type="text" placeholder="Enter component/repo name" class="detail-input">
-
-                                                        <button type="button" class="add-repo-btn" onclick="addRepoInput()">+</button>
-
-                                                    </div>
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>
 
                                         <div class="checkbox-with-input">
 
@@ -617,6 +481,16 @@
                                             </div>
 
                                         </div>
+
+                                        <label class="checkbox-item">
+
+                                            <input type="checkbox" id="crQualityCheck">
+
+                                            <span class="checkmark"></span>
+
+                                            <span class="item-text">CR quality (ICE and LTTD)</span>
+
+                                        </label>
 
                                         <div class="checkbox-with-input">
 
@@ -774,6 +648,22 @@
 
             <div class="modal-header">
 
+                <div class="modal-header-left">
+
+                    <button class="modal-action-btn edit-btn" id="editRelease" title="Edit Release">
+
+                        <i class="fas fa-edit"></i>
+
+                    </button>
+
+                    <button class="modal-action-btn delete-btn" id="deleteRelease" title="Delete Release">
+
+                        <i class="fas fa-trash"></i>
+
+                    </button>
+
+                </div>
+
                 <h3 id="modalTitle">Release Details</h3>
 
                 <button class="close-btn" id="closeModal">
@@ -790,22 +680,6 @@
 
             </div>
 
-            <div class="modal-footer">
-
-                <button class="btn-primary" id="editRelease">
-
-                    <i class="fas fa-edit"></i> Edit Release
-
-                </button>
-
-                <button class="btn-danger" id="deleteRelease">
-
-                    <i class="fas fa-trash"></i> Delete Release
-
-                </button>
-
-            </div>
-
         </div>
 
     </div>
@@ -817,5 +691,3 @@
 </body>
 
 </html>
-
- 
