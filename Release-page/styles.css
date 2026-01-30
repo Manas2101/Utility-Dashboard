@@ -490,13 +490,45 @@ body::before {
 
 .stats-card h3,
 
-.data-management h3 {
+.repo-management {
 
-    margin-bottom: 15px;
+margin-bottom: 30px;
 
-    color: #333;
+padding: 25px;
 
-    font-size: 1.1rem;
+background: rgba(255,255,255,0.03);
+
+backdrop-filter: blur(10px);
+
+border-radius: 12px;
+
+border: 1px solid rgba(255,255,255,0.1);
+
+}
+
+.repo-management h3 {
+
+color: rgba(255,255,255,0.9);
+
+margin-bottom: 20px;
+
+font-size: 1.3rem;
+
+}
+
+.repo-management {
+
+margin-bottom: 30px;
+
+padding: 25px;
+
+background: rgba(255,255,255,0.03);
+
+backdrop-filter: blur(10px);
+
+border-radius: 12px;
+
+border: 1px solid rgba(255,255,255,0.1);
 
 }
 
@@ -589,6 +621,154 @@ body::before {
     justify-content: center;
 
     color: rgba(255,255,255,0.8);
+
+}
+
+.add-repo-btn {
+
+    padding: 12px 20px;
+
+    background: linear-gradient(135deg, #DB0011, #FF4444);
+
+    color: white;
+
+    border: none;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 1.2rem;
+
+    transition: all 0.3s ease;
+
+    box-shadow: 0 4px 12px rgba(219, 0, 17, 0.4);
+
+    min-width: 50px;
+
+}
+
+.add-repo-btn:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 6px 20px rgba(219, 0, 17, 0.6);
+
+}
+
+.remove-repo-btn {
+
+    padding: 8px 12px;
+
+    background: rgba(220, 53, 69, 0.2);
+
+    color: #dc3545;
+
+    border: 1px solid rgba(220, 53, 69, 0.5);
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-size: 1rem;
+
+    transition: all 0.3s ease;
+
+}
+
+.remove-repo-btn:hover {
+
+    background: rgba(220, 53, 69, 0.3);
+
+    transform: translateY(-1px);
+
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+
+}
+
+.repo-input {
+
+    flex: 1;
+
+    padding: 12px 15px;
+
+    border: 2px solid rgba(255,255,255,0.3);
+
+    border-radius: 8px;
+
+    background: rgba(255,255,255,0.1);
+
+    color: #fff;
+
+    font-size: 1rem;
+
+    transition: all 0.3s ease;
+
+}
+
+.repo-input::placeholder {
+
+    color: rgba(255,255,255,0.5);
+
+}
+
+.repo-input:focus {
+
+    outline: none;
+
+    border-color: #DB0011;
+
+    box-shadow: 0 0 0 3px rgba(219, 0, 17, 0.2);
+
+    background: rgba(255,255,255,0.15);
+
+}
+
+.repo-input-group {
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-bottom: 20px;
+
+}
+
+.repo-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 12px 15px;
+
+    background: rgba(255,255,255,0.05);
+
+    border: 1px solid rgba(255,255,255,0.1);
+
+    border-radius: 8px;
+
+    margin-bottom: 10px;
+
+    transition: all 0.3s ease;
+
+}
+
+.repo-item:hover {
+
+    background: rgba(255,255,255,0.08);
+
+    border-color: rgba(219,0,17,0.3);
+
+}
+
+.repo-name {
+
+    color: rgba(255,255,255,0.9);
+
+    font-size: 0.95rem;
 
 }
 
@@ -1018,7 +1198,7 @@ body::before {
 
     padding: 12px 15px;
 
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.3);
 
     border-radius: 8px;
 
@@ -1026,9 +1206,19 @@ body::before {
 
     transition: all 0.3s ease;
 
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.1);
 
     color: #fff;
+
+    width: 100%;
+
+}
+
+.form-group input::placeholder,
+
+.form-group textarea::placeholder {
+
+    color: rgba(255,255,255,0.5);
 
 }
 
@@ -1042,9 +1232,9 @@ body::before {
 
     border-color: #DB0011;
 
-    box-shadow: 0 0 0 3px rgba(219, 0, 17, 0.1);
+    box-shadow: 0 0 0 3px rgba(219, 0, 17, 0.2);
 
-    background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.15);
 
 }
 
@@ -1053,6 +1243,16 @@ body::before {
 .form-group input[type="date"] {
 
     transition: border-color 0.3s ease;
+
+    color-scheme: dark;
+
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+
+    filter: invert(1);
+
+    cursor: pointer;
 
 }
 
@@ -1501,6 +1701,38 @@ button.breadcrumb-step {
     border-color: #28a745;
 
     color: white;
+
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+
+}
+
+.breadcrumb-step.in-progress .breadcrumb-circle {
+
+    background: linear-gradient(135deg, #ffc107, #ff9800);
+
+    border-color: #ffc107;
+
+    color: white;
+
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+
+    animation: pulse 2s ease-in-out infinite;
+
+}
+
+@keyframes pulse {
+
+    0%, 100% {
+
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+
+    }
+
+    50% {
+
+        box-shadow: 0 4px 20px rgba(255, 193, 7, 0.7);
+
+    }
 
 }
 

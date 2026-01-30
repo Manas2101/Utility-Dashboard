@@ -3811,7 +3811,7 @@ class ReleaseManager {
 
                 <button type="button" class="remove-repo-btn" onclick="window.releaseManager.removeRepository('${repo.id}')">
 
-                    Remove
+                    <i class="fas fa-trash"></i>
 
                 </button>
 
