@@ -28,6 +28,32 @@ body {
 
 }
 
+/* Ensure all text is visible */
+
+h1, h2, h3, h4, h5, h6 {
+
+    color: rgba(255,255,255,0.95) !important;
+
+}
+
+p, span, label {
+
+    color: rgba(255,255,255,0.85) !important;
+
+}
+
+.item-text {
+
+    color: rgba(255,255,255,0.95) !important;
+
+}
+
+.breadcrumb-label {
+
+    color: rgba(255,255,255,0.9) !important;
+
+}
+
  
 
 body::before {
@@ -93,6 +119,26 @@ body::before {
     margin-bottom: 30px;
 
     color: white;
+
+}
+
+.header h1 {
+
+    color: rgba(255,255,255,0.95) !important;
+
+    font-size: 2.5rem;
+
+    font-weight: 700;
+
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+
+}
+
+.header p {
+
+    color: rgba(255,255,255,0.8) !important;
+
+    font-size: 1.1rem;
 
 }
 
@@ -368,7 +414,7 @@ body::before {
 
     font-weight: bold;
 
-    color: rgba(255,255,255,0.9);
+    color: rgba(255,255,255,0.95);
 
     line-height: 1;
 
@@ -388,7 +434,7 @@ body::before {
 
     font-size: 0.9rem;
 
-    color: rgba(255,255,255,0.6);
+    color: rgba(255,255,255,0.7);
 
     margin-top: 4px;
 
@@ -876,17 +922,13 @@ border: 1px solid rgba(255,255,255,0.1);
 
  
 
-.tab-header h2 {
+.tab-header h2,
 
-    color: #333;
+.tab-header h3 {
 
-    font-size: 1.8rem;
+    color: rgba(255,255,255,0.95);
 
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
+    font-weight: 600;
 
 }
 
@@ -1222,9 +1264,13 @@ border: 1px solid rgba(255,255,255,0.1);
 
     margin-bottom: 8px;
 
-    font-weight: 600;
+    font-weight: 500;
+
+    display: block;
 
     color: rgba(255,255,255,0.9);
+
+    font-size: 1rem;
 
 }
 
@@ -1395,6 +1441,20 @@ border: 1px solid rgba(255,255,255,0.1);
     padding-bottom: 10px;
 
     border-bottom: 2px solid #f0f0f0;
+
+}
+
+ 
+
+.step-header h3 {
+
+    margin: 0;
+
+    font-size: 1.2rem;
+
+    color: rgba(255,255,255,0.95);
+
+    font-weight: 600;
 
 }
 
@@ -1737,6 +1797,18 @@ button.breadcrumb-step {
     color: rgba(255,255,255,0.9);
 
     font-size: 1.5rem;
+
+}
+
+ 
+
+.breadcrumb-circle .step-count {
+
+    font-size: 0.85rem;
+
+    margin-top: 5px;
+
+    color: rgba(255,255,255,0.8);
 
 }
 
@@ -2734,9 +2806,11 @@ button.breadcrumb-step {
 
     line-height: 1.4;
 
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 
-    color: rgba(255,255,255,0.8);
+    color: rgba(255,255,255,0.95);
+
+    font-weight: 500;
 
 }
 
@@ -2821,7 +2895,6 @@ button.breadcrumb-step {
     color: rgba(255,255,255,0.6);
 
 }
- 
 
 .detail-input:focus {
 
@@ -3465,7 +3538,7 @@ button.breadcrumb-step {
 
     font-weight: bold;
 
-    color: rgba(255,255,255,0.9);
+    color: rgba(255,255,255,0.95);
 
 }
 
