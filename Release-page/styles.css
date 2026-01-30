@@ -538,13 +538,17 @@ body::before {
 
 .stats-card {
 
-    background: white;
+    background: rgba(255,255,255,0.05);
+
+    backdrop-filter: blur(10px);
 
     padding: 20px;
 
     border-radius: 10px;
 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+
+    border: 1px solid rgba(255,255,255,0.1);
 
 }
 
@@ -640,15 +644,19 @@ border: 1px solid rgba(255,255,255,0.1);
 
 .data-management {
 
-    background: white;
+    background: rgba(255,255,255,0.03);
+
+    backdrop-filter: blur(10px);
 
     padding: 20px;
 
-    border-radius: 10px;
+    margin-bottom: 30px;
 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-radius: 12px;
 
-    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+
+    border: 1px solid rgba(255,255,255,0.1);
 
 }
 
@@ -1192,9 +1200,9 @@ border: 1px solid rgba(255,255,255,0.1);
 
 .legend-color.available {
 
-    background: white;
+    background: rgba(255,255,255,0.1);
 
-    border: 2px solid #e9ecef;
+    border: 2px solid rgba(255,255,255,0.3);
 
 }
 
@@ -1734,7 +1742,7 @@ button.breadcrumb-step {
 
 .breadcrumb-step:hover {
 
-    background: #f8f9fa;
+    background: rgba(255,255,255,0.08);
 
     transform: translateY(-2px);
 
@@ -1988,15 +1996,19 @@ button.breadcrumb-step {
 
 .data-management {
 
-    background: white;
+    background: rgba(255,255,255,0.03);
 
-    border-radius: 12px;
+    backdrop-filter: blur(10px);
 
     padding: 20px;
 
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+
+    border: 1px solid rgba(255,255,255,0.1);
 
 }
 
@@ -2012,13 +2024,13 @@ button.breadcrumb-step {
 
     padding: 10px 12px;
 
-    background: #f8f9fa;
+    background: rgba(255,255,255,0.05);
 
     border-radius: 8px;
 
     margin-bottom: 15px;
 
-    border: 2px solid #e9ecef;
+    border: 1px solid rgba(255,255,255,0.15);
 
 }
 
@@ -2120,17 +2132,19 @@ button.breadcrumb-step {
 
 .repo-management {
 
-    background: white;
+    background: rgba(255,255,255,0.03);
 
-    border-radius: 12px;
+    backdrop-filter: blur(10px);
 
     padding: 20px;
 
     margin: 20px 0;
 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
 
-    border: 2px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    border: 1px solid rgba(255,255,255,0.1);
 
 }
 
@@ -2246,9 +2260,9 @@ button.breadcrumb-step {
 
     padding: 12px 16px;
 
-    background: #f8f9fa;
+    background: rgba(255,255,255,0.05);
 
-    border: 2px solid #e9ecef;
+    border: 1px solid rgba(255,255,255,0.15);
 
     border-radius: 8px;
 
@@ -2338,13 +2352,17 @@ button.breadcrumb-step {
 
 .repo-workflow-section {
 
-    border: 2px solid #e9ecef;
+    border: 1px solid rgba(255,255,255,0.1);
 
     border-radius: 12px;
 
     padding: 20px;
 
-    background: #f8f9fa;
+    background: rgba(255,255,255,0.03);
+
+    backdrop-filter: blur(10px);
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
 }
 
@@ -2406,13 +2424,19 @@ button.breadcrumb-step {
 
 .workflow-phase {
 
-    background: white;
+    background: rgba(255,255,255,0.03);
+
+    backdrop-filter: blur(10px);
 
     border-radius: 8px;
 
-    padding: 15px;
+    padding: 20px;
 
-    border: 1px solid #dee2e6;
+    margin-bottom: 20px;
+
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+
+    border: 1px solid rgba(255,255,255,0.1);
 
 }
 
@@ -2464,7 +2488,9 @@ button.breadcrumb-step {
 
 .workflow-details .workflow-step {
 
-    background: white;
+    background: rgba(255,255,255,0.03);
+
+    backdrop-filter: blur(10px);
 
     border-radius: 12px;
 
@@ -2472,9 +2498,9 @@ button.breadcrumb-step {
 
     margin-bottom: 15px;
 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
-    border: 2px solid #e9ecef;
+    border: 1px solid rgba(255,255,255,0.1);
 
     display: none !important;
 
@@ -2548,15 +2574,17 @@ button.breadcrumb-step {
 
     min-width: 300px;
 
-    background: white;
+    background: rgba(255,255,255,0.03);
+
+    backdrop-filter: blur(10px);
 
     border-radius: 12px;
 
     padding: 20px;
 
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 
-    border: 2px solid #e9ecef;
+    border: 1px solid rgba(255,255,255,0.1);
 
     transition: all 0.3s ease;
 
@@ -2832,9 +2860,11 @@ button.breadcrumb-step {
 
     padding: 12px;
 
-    background: white;
+    background: rgba(255,255,255,0.05);
 
-    border: 1px solid #e9ecef;
+    backdrop-filter: blur(10px);
+
+    border: 1px solid rgba(255,255,255,0.15);
 
     border-radius: 6px;
 
@@ -4162,19 +4192,15 @@ gap: 15px;
 
 .modal-step h4 {
 
-    background: #f8f9fa;
+    background: rgba(255,255,255,0.05);
 
     margin: 0;
 
-    padding: 12px 16px;
+    padding: 12px;
 
-    border-bottom: 1px solid #e9ecef;
+    border-radius: 8px 8px 0 0;
 
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
+    color: rgba(255,255,255,0.95);
 
 }
 
@@ -4260,9 +4286,9 @@ gap: 15px;
 
     font-size: 0.9rem;
 
-    color: #666;
+    color: rgba(255,255,255,0.7);
 
-    background: #f8f9fa;
+    background: rgba(255,255,255,0.05);
 
     padding: 4px 8px;
 
