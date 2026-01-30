@@ -1420,7 +1420,7 @@ border: 1px solid rgba(255,255,255,0.1);
 
 .workflow-step {
 
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.03) !important;
 
     backdrop-filter: blur(10px);
 
@@ -1431,6 +1431,8 @@ border: 1px solid rgba(255,255,255,0.1);
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 
     border-left: 4px solid #DB0011;
+
+    border: 1px solid rgba(255,255,255,0.1);
 
 }
 
@@ -1448,7 +1450,7 @@ border: 1px solid rgba(255,255,255,0.1);
 
     padding-bottom: 10px;
 
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
 
 }
 
@@ -2464,7 +2466,7 @@ button.breadcrumb-step {
 
 .step-description {
 
-    color: #6c757d;
+    color: rgba(255,255,255,0.7);
 
     font-size: 0.9rem;
 
@@ -2574,7 +2576,7 @@ button.breadcrumb-step {
 
     min-width: 300px;
 
-    background: rgba(255,255,255,0.03);
+    background: rgba(255,255,255,0.03) !important;
 
     backdrop-filter: blur(10px);
 
