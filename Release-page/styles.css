@@ -60,11 +60,27 @@ body::before {
 
     margin: 0 auto;
 
-    padding: 40px 32px;
+    padding: 20px;
 
     position: relative;
 
     z-index: 1;
+
+}
+
+.main-content {
+
+    background: rgba(255,255,255,0.03);
+
+    backdrop-filter: blur(10px);
+
+    border-radius: 16px;
+
+    border: 1px solid rgba(255,255,255,0.1);
+
+    padding: 30px;
+
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 
 }
 
@@ -692,11 +708,11 @@ border: 1px solid rgba(255,255,255,0.1);
 
     padding: 12px 15px;
 
-    border: 2px solid rgba(255,255,255,0.3);
+    border: 2px solid rgba(255,255,255,0.5);
 
     border-radius: 8px;
 
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.15);
 
     color: #fff;
 
@@ -704,11 +720,13 @@ border: 1px solid rgba(255,255,255,0.1);
 
     transition: all 0.3s ease;
 
+    font-weight: 500;
+
 }
 
 .repo-input::placeholder {
 
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
 
 }
 
@@ -718,9 +736,9 @@ border: 1px solid rgba(255,255,255,0.1);
 
     border-color: #DB0011;
 
-    box-shadow: 0 0 0 3px rgba(219, 0, 17, 0.2);
+    box-shadow: 0 0 0 3px rgba(219, 0, 17, 0.3);
 
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.2);
 
 }
 
@@ -808,6 +826,16 @@ border: 1px solid rgba(255,255,255,0.1);
 
     display: none;
 
+    background: rgba(255,255,255,0.02);
+
+    backdrop-filter: blur(10px);
+
+    border-radius: 12px;
+
+    padding: 25px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+
 }
 
  
@@ -815,6 +843,16 @@ border: 1px solid rgba(255,255,255,0.1);
 .tab-content.active {
 
     display: block;
+
+    animation: fadeIn 0.3s ease-in;
+
+}
+
+@keyframes fadeIn {
+
+    from { opacity: 0; transform: translateY(10px); }
+
+    to { opacity: 1; transform: translateY(0); }
 
 }
 
@@ -1198,7 +1236,7 @@ border: 1px solid rgba(255,255,255,0.1);
 
     padding: 12px 15px;
 
-    border: 2px solid rgba(255,255,255,0.3);
+    border: 2px solid rgba(255,255,255,0.5);
 
     border-radius: 8px;
 
@@ -1206,11 +1244,13 @@ border: 1px solid rgba(255,255,255,0.1);
 
     transition: all 0.3s ease;
 
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.15);
 
     color: #fff;
 
     width: 100%;
+
+    font-weight: 500;
 
 }
 
@@ -1218,7 +1258,9 @@ border: 1px solid rgba(255,255,255,0.1);
 
 .form-group textarea::placeholder {
 
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
+
+    font-weight: 400;
 
 }
 
@@ -1232,9 +1274,9 @@ border: 1px solid rgba(255,255,255,0.1);
 
     border-color: #DB0011;
 
-    box-shadow: 0 0 0 3px rgba(219, 0, 17, 0.2);
+    box-shadow: 0 0 0 3px rgba(219, 0, 17, 0.3);
 
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.2);
 
 }
 
@@ -1656,9 +1698,9 @@ button.breadcrumb-step {
 
     position: relative;
 
-    width: 60px;
+    width: 70px;
 
-    height: 60px;
+    height: 70px;
 
     border-radius: 50%;
 
@@ -1672,9 +1714,29 @@ button.breadcrumb-step {
 
     margin-bottom: 10px;
 
-    transition: all 0.3s ease;
+    transition: all 0.5s ease;
 
-    border: 3px solid rgba(255,255,255,0.2);
+    border: 4px solid rgba(255,255,255,0.15);
+
+    font-size: 1.2rem;
+
+    font-weight: bold;
+
+    color: rgba(255,255,255,0.9);
+
+    z-index: 1;
+
+}
+
+.breadcrumb-circle i {
+
+    position: relative;
+
+    z-index: 2;
+
+    color: rgba(255,255,255,0.9);
+
+    font-size: 1.5rem;
 
 }
 
@@ -1682,13 +1744,19 @@ button.breadcrumb-step {
 
 .breadcrumb-step.active .breadcrumb-circle {
 
-    background: linear-gradient(135deg, #DB0011, #FF4444);
-
     border-color: #DB0011;
 
     color: white;
 
-    box-shadow: 0 4px 12px rgba(219, 0, 17, 0.4);
+    box-shadow: 0 4px 16px rgba(219, 0, 17, 0.6);
+
+    transform: scale(1.05);
+
+}
+
+.breadcrumb-step.active .breadcrumb-circle i {
+
+    color: white;
 
 }
 
@@ -1696,27 +1764,35 @@ button.breadcrumb-step {
 
 .breadcrumb-step.completed .breadcrumb-circle {
 
-    background: linear-gradient(135deg, #28a745, #1e7e34);
-
     border-color: #28a745;
 
     color: white;
 
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.6);
+
+}
+
+.breadcrumb-step.completed .breadcrumb-circle i {
+
+    color: white;
 
 }
 
 .breadcrumb-step.in-progress .breadcrumb-circle {
 
-    background: linear-gradient(135deg, #ffc107, #ff9800);
-
     border-color: #ffc107;
 
     color: white;
 
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+    box-shadow: 0 4px 16px rgba(255, 193, 7, 0.6);
 
     animation: pulse 2s ease-in-out infinite;
+
+}
+
+.breadcrumb-step.in-progress .breadcrumb-circle i {
+
+    color: white;
 
 }
 
@@ -1730,7 +1806,7 @@ button.breadcrumb-step {
 
     50% {
 
-        box-shadow: 0 4px 20px rgba(255, 193, 7, 0.7);
+        box-shadow: 0 4px 24px rgba(255, 193, 7, 0.8);
 
     }
 
@@ -2720,11 +2796,19 @@ button.breadcrumb-step {
 
     width: 100%;
 
-    padding: 8px 12px;
+    padding: 10px;
 
-    border: 1px solid #ddd;
+    border: 2px solid rgba(255,255,255,0.5);
 
-    border-radius: 4px;
+    border-radius: 5px;
+
+    margin-top: 8px;
+
+    background: rgba(255,255,255,0.15);
+
+    color: #fff;
+
+    font-weight: 500;
 
     font-size: 0.9rem;
 
@@ -2732,6 +2816,11 @@ button.breadcrumb-step {
 
 }
 
+.detail-input::placeholder {
+
+    color: rgba(255,255,255,0.6);
+
+}
  
 
 .detail-input:focus {

@@ -427,7 +427,7 @@ class ReleaseManager {
         });
 
         // Documentation checkboxes event listeners
-        const docCheckboxes = ['releasePageGenerated', 'crCreated', 'crQualityCheck'];
+        const docCheckboxes = ['releasePageGenerated', 'crCreated', 'crQualityCheck', 'confluenceJira', 'evidencesAttached'];
         docCheckboxes.forEach(checkboxId => {
             const checkbox = document.getElementById(checkboxId);
             if (checkbox) {
@@ -1633,7 +1633,7 @@ class ReleaseManager {
 
         // Count documentation progress
 
-        const docCheckboxes = ['releasePageGenerated', 'crCreated', 'crQualityCheck'];
+        const docCheckboxes = ['releasePageGenerated', 'crCreated', 'crQualityCheck', 'confluenceJira', 'evidencesAttached'];
 
         const completedDocItems = docCheckboxes.filter(checkboxId => {
 
@@ -1701,7 +1701,7 @@ class ReleaseManager {
 
         if (step2Count) {
 
-            step2Count.textContent = `${completedDocItems}/3`;
+            step2Count.textContent = `${completedDocItems}/5`;
 
         }
 
@@ -1723,6 +1723,8 @@ class ReleaseManager {
 
             let totalRepoProgress = 0;
 
+            let repoPercentage = 0;
+
             if (this.repositories.length > 0) {
 
                 this.repositories.forEach(repo => {
@@ -1736,6 +1738,24 @@ class ReleaseManager {
                 });
 
                 const avgRepoProgress = totalRepoProgress / this.repositories.length;
+
+                repoPercentage = Math.round(avgRepoProgress * 100);
+
+                // Update visual progress
+
+                const circle1 = breadcrumb1.querySelector('.breadcrumb-circle');
+
+                if (circle1) {
+
+                    const degrees = (repoPercentage / 100) * 360;
+
+                    const color = repoPercentage === 100 ? '#28a745' : '#ffc107';
+
+                    circle1.style.setProperty('--progress-degrees', `${degrees}deg`);
+
+                    circle1.style.background = `conic-gradient(${color} 0deg ${degrees}deg, rgba(255,255,255,0.05) ${degrees}deg 360deg)`;
+
+                }
 
                 if (avgRepoProgress === 1) {
 
@@ -1761,7 +1781,23 @@ class ReleaseManager {
 
         if (breadcrumb2) {
 
-            if (completedDocItems === 3) {
+            const docPercentage = Math.round((completedDocItems / 5) * 100);
+
+            const circle2 = breadcrumb2.querySelector('.breadcrumb-circle');
+
+            if (circle2) {
+
+                const degrees = (docPercentage / 100) * 360;
+
+                const color = docPercentage === 100 ? '#28a745' : '#ffc107';
+
+                circle2.style.setProperty('--progress-degrees', `${degrees}deg`);
+
+                circle2.style.background = `conic-gradient(${color} 0deg ${degrees}deg, rgba(255,255,255,0.05) ${degrees}deg 360deg)`;
+
+            }
+
+            if (completedDocItems === 5) {
 
                 breadcrumb2.classList.add('completed');
 
