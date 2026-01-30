@@ -508,7 +508,7 @@ def create_utility_pr(new_util: dict, new_id: str, file_rel_path: str, source_br
 
  
 
-        # 2) Create new branch ref
+        # 2) Create or update branch ref to point to latest target branch
 
         create_ref_url = f"{refs_base}/repos/{owner}/{repo}/git/refs"
 
@@ -522,19 +522,55 @@ def create_utility_pr(new_util: dict, new_id: str, file_rel_path: str, source_br
 
         step('create branch ref', ok_cr, out_cr)
 
-        if not ok_cr and 'Reference already exists' not in out_cr:
+        
+
+        # If branch already exists, update it to point to latest target branch SHA
+
+        if not ok_cr and 'Reference already exists' in out_cr:
+
+            update_ref_url = f"{refs_base}/repos/{owner}/{repo}/git/refs/heads/{unique_branch}"
+
+            import urllib.request
+
+            import urllib.error
+
+            data = json.dumps({'sha': base_sha, 'force': True}).encode('utf-8')
+
+            req = urllib.request.Request(update_ref_url, data=data, headers=headers, method='PATCH')
+
+            try:
+
+                with urllib.request.urlopen(req, timeout=20) as resp:
+
+                    ok_update = True
+
+                    out_update = resp.read().decode('utf-8', errors='ignore')
+
+            except Exception as e:
+
+                ok_update = False
+
+                out_update = str(e)
+
+            step('update existing branch ref', ok_update, out_update)
+
+            if not ok_update:
+
+                return result
+
+        elif not ok_cr:
 
             return result
 
  
 
-        # 3) Check if file exists to get SHA (required for updates)
+        # 3) Check if file exists on TARGET branch to get SHA (required for updates)
 
         contents_url = f"{refs_base}/repos/{owner}/{repo}/contents/{file_rel_path}"
 
         file_sha = None
 
-        ok_get, out_get = _http_get(f"{contents_url}?ref={unique_branch}", headers)
+        ok_get, out_get = _http_get(f"{contents_url}?ref={target_branch}", headers)
 
         if ok_get:
 
