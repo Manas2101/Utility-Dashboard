@@ -280,7 +280,7 @@ def _load_utilities_merged() -> list:
 
 def _validate_new_utility(payload: dict):
 
-    required = ['title','description','committer','server_url','source_code_url','playbook']
+    required = ['title','description','committer','source_code_url','playbook']
 
     missing = [f for f in required if not payload.get(f)]
 

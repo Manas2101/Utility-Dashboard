@@ -232,31 +232,13 @@
 
         <div class="field">
 
-          <label for="developer">Developer/Team</label>
+          <label for="developer">Team</label>
 
           <input id="developer" name="developer" type="text" placeholder="e.g., Core Engineering" />
 
-          <div class="hint">Optional: team or individual maintaining this utility.</div>
+          <div class="hint">Optional: team maintaining this utility.</div>
 
           <div class="error" data-error-for="developer"></div>
-
-        </div>
-
-        <div class="field">
-
-          <label for="developer_source">Developer Source</label>
-
-          <select id="developer_source" name="developer_source">
-
-            <option value="" disabled selected>-- Select Source --</option>
-
-            <option value="internal">Internal (HSBC Team)</option>
-
-            <option value="external">External (Vendor/Community)</option>
-
-          </select>
-
-          <div class="error" data-error-for="developer_source"></div>
 
         </div>
 
@@ -278,9 +260,11 @@
 
         <div class="field">
 
-          <label for="server_url">Utility URL <span class="req">*</span></label>
+          <label for="server_url">Utility URL</label>
 
-          <input id="server_url" name="server_url" type="text" placeholder="e.g., http://your-utility.example.com" required />
+          <input id="server_url" name="server_url" type="text" placeholder="e.g., http://your-utility.example.com" />
+
+          <div class="hint">Optional: Leave empty for script-based utilities.</div>
 
         </div>
 
@@ -289,14 +273,6 @@
          <label for="source_code_url">Source Code URL <span class="req">*</span></label>
 
           <input id="source_code_url" name="source_code_url" type="text" placeholder="e.g., https://internal-git/..." required />
-
-        </div>
-
-        <div class="field">
-
-          <label for="type">Category/Type</label>
-
-          <input id="type" name="type" type="text" placeholder="e.g., CI/CD, Monitoring" />
 
         </div>
 
@@ -332,11 +308,11 @@
 
         <div class="field full">
 
-          <label for="playbook">Playbook / Running Steps <span class="req">*</span></label>
+          <label for="playbook">How to Use <span class="req">*</span></label>
 
-          <textarea id="playbook" name="playbook" placeholder='List the steps to run the utility, prerequisites, commands, and expected outputs.' required></textarea>
+          <textarea id="playbook" name="playbook" placeholder='List the steps to use the utility, prerequisites, commands, and expected outputs.' required></textarea>
 
-          <div class="hint">Provide clear, executable steps to run the utility (commands, flags, environments).</div>
+          <div class="hint">Provide clear, executable steps to use the utility (commands, flags, environments).</div>
 
           <div class="error" data-error-for="playbook"></div>
 

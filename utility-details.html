@@ -120,11 +120,7 @@
 
           <tr><th>Description</th><td>{{ utility.description }}</td></tr>
 
-          <tr><th>Developer</th><td>{{ utility.developer }}</td></tr>
-
-          <tr><th>Source</th><td>{{ utility.developer_source if utility.developer_source else 'Internal' }}</td></tr>
-
-          <tr><th>Type</th><td>{{ utility.type }}</td></tr>
+          <tr><th>Team</th><td>{{ utility.developer }}</td></tr>
 
           <tr><th>Language</th><td>{{ utility.source_language or 'N/A' }}</td></tr>
 
@@ -144,11 +140,11 @@
 
       <div class="config-wrapper">
 
-        <h3 style="font-size:14px;font-weight:600;margin:0 0 8px;color:var(--hsbc-charcoal);">Playbook / Running Steps</h3>
+        <h3 style="font-size:14px;font-weight:600;margin:0 0 8px;color:var(--hsbc-charcoal);">How to Use</h3>
 
         <button class="copy-btn" id="copyConfigBtn">Copy Steps</button>
 
-        <pre id="configBlock">{{ utility.playbook if utility.playbook else 'No playbook provided' }}</pre>
+        <pre id="configBlock">{{ utility.playbook if utility.playbook else 'No usage instructions provided' }}</pre>
 
       </div>
 
