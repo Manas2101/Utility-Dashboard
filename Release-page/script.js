@@ -1345,36 +1345,6 @@ class ReleaseManager {
 
         }, 600);
 
-       
-
-        // Store the ID for updating instead of creating new
-
-        this.editingReleaseId = this.selectedReleaseId;
-
-       
-
-        // Show edit mode indicator
-
-        const formTitle = document.querySelector('#booking-tab .tab-header h2');
-
-        if (formTitle) {
-
-            formTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Release';
-
-        }
-
-       
-
-        // Change button text to "Update Release"
-
-        const submitButton = document.querySelector('button[type="submit"]');
-
-        if (submitButton) {
-
-            submitButton.innerHTML = '<i class="fas fa-save"></i> Update Release';
-
-        }
-
     }
 
  
