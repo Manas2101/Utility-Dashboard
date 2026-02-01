@@ -94,6 +94,16 @@ def index():
 
  
 
+@app.route(f"/{APP_NAME}/lttd")
+def lttd_page():
+    """Serve the LTTD metrics page."""
+    return send_from_directory('LTTD-page', 'index.html')
+
+@app.route(f"/{APP_NAME}/lttd/<path:filename>")
+def lttd_static(filename):
+    """Serve LTTD page static files."""
+    return send_from_directory('LTTD-page', filename)
+
 @app.route(f"/{APP_NAME}/add")
 
 def add_utility_form():
@@ -945,6 +955,92 @@ def upload_icon():
     except Exception as e:
 
         return jsonify({'error': f'Upload failed: {str(e)}'}), 500
+
+ 
+
+@app.route('/api/lttd/records', methods=['POST'])
+def fetch_lttd_records():
+    """
+    Fetch LTTD records from DataSight API.
+    Expects JSON body with: from_date, to_date, teambook_id, level
+    """
+    try:
+        data = request.get_json()
+        from_date = data.get('from_date')
+        to_date = data.get('to_date')
+        teambook_id = data.get('teambook_id')
+        level = data.get('level')
+        
+        if not all([from_date, to_date, teambook_id, level]):
+            return jsonify({
+                'status': 'error',
+                'error': 'Missing required parameters: from_date, to_date, teambook_id, level'
+            }), 400
+        
+        # Get DataSight credentials from environment
+        base_url = os.getenv('DATASIGHT_BASE_URL', 'https://datasight.global.hsbc')
+        bearer_token = os.getenv('DATASIGHT_BEARER_TOKEN')
+        
+        if not bearer_token:
+            return jsonify({
+                'status': 'error',
+                'error': 'DataSight bearer token not configured. Set DATASIGHT_BEARER_TOKEN environment variable.'
+            }), 500
+        
+        # Import the DataSight fetcher
+        import sys
+        datasight_path = os.path.join(BASE_DIR, 'DataSight_Automation')
+        if datasight_path not in sys.path:
+            sys.path.insert(0, datasight_path)
+        
+        from fetch_dora_metrics import DataSightDORAFetcher
+        
+        # Initialize fetcher
+        fetcher = DataSightDORAFetcher(base_url, bearer_token)
+        
+        # Step 1: Fetch LTTD metrics to get aggregation keys
+        lttd_metrics = fetcher.fetch_lttd(
+            from_date=from_date,
+            to_date=to_date,
+            teambook_ids=teambook_id,
+            teambook_level=int(level)
+        )
+        
+        if lttd_metrics['status'] != 'success' or not lttd_metrics.get('data'):
+            return jsonify({
+                'status': 'error',
+                'error': 'Failed to fetch LTTD metrics or no data available'
+            }), 500
+        
+        # Step 2: Fetch detailed records using aggregation keys
+        all_records = []
+        lttd_data = lttd_metrics['data'].get('data', [])
+        
+        for metric_record in lttd_data:
+            agg_key = metric_record.get('aggKey')
+            if not agg_key:
+                continue
+            
+            # Fetch records for this aggregation key
+            details_response = fetcher.fetch_lttd_records(agg_key, size=100)
+            
+            if details_response['status'] == 'success' and details_response.get('data'):
+                records = details_response['data'].get('data', [])
+                all_records.extend(records)
+        
+        return jsonify({
+            'status': 'success',
+            'records': all_records,
+            'count': len(all_records)
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'status': 'error',
+            'error': f'Failed to fetch LTTD records: {str(e)}'
+        }), 500
 
  
 
