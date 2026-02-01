@@ -10,6 +10,8 @@ class ReleaseManager {
 
         this.selectedReleaseId = null;
 
+        this.editingReleaseId = null; // Track if we're editing an existing release
+
         this.dataFile = 'releases.json';
 
         this.repositories = []; // Store added repositories
@@ -466,6 +468,30 @@ class ReleaseManager {
         });
 
         document.getElementById(`${tabName}-tab`).classList.add('active');
+
+ 
+
+        // Reset edit mode when switching to booking tab (unless we're coming from editRelease)
+
+        if (tabName === 'booking' && !this.editingReleaseId) {
+
+            const formTitle = document.querySelector('#booking-tab .tab-header h2');
+
+            if (formTitle) {
+
+                formTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Book New Release';
+
+            }
+
+            const submitButton = document.querySelector('button[type="submit"]');
+
+            if (submitButton) {
+
+                submitButton.innerHTML = '<i class="fas fa-save"></i> Book Release';
+
+            }
+
+        }
 
  
 
@@ -1143,6 +1169,12 @@ class ReleaseManager {
 
        
 
+        // Set editing mode with the release ID
+
+        this.editingReleaseId = this.selectedReleaseId;
+
+       
+
         // Close modal and switch to booking tab
 
         this.closeModal();
@@ -1160,6 +1192,26 @@ class ReleaseManager {
  
 
     populateFormForEdit(release) {
+
+        // Update form title and button to indicate edit mode
+
+        const formTitle = document.querySelector('#booking-tab .tab-header h2');
+
+        if (formTitle) {
+
+            formTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Release';
+
+        }
+
+        const submitButton = document.querySelector('button[type="submit"]');
+
+        if (submitButton) {
+
+            submitButton.innerHTML = '<i class="fas fa-save"></i> Update Release';
+
+        }
+
+       
 
         // Fill basic form fields
 
@@ -2479,7 +2531,7 @@ class ReleaseManager {
 
             const release = {
 
-                id: Date.now().toString(),
+                id: this.editingReleaseId || Date.now().toString(),
 
                 teamName: document.getElementById('teamName').value.trim(),
 
@@ -2497,7 +2549,7 @@ class ReleaseManager {
 
                 checklist: {},
 
-                createdAt: new Date().toISOString()
+                createdAt: this.editingReleaseId ? (this.releases.find(r => r.id === this.editingReleaseId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
 
             };
 
