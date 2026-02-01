@@ -28,6 +28,12 @@ import urllib.error
 
 import urllib.parse
 
+import requests
+
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 # Fresh PR service (do not use any existing pr_service.py)
 
 from services.github_pr_service import create_utility_pr
@@ -55,6 +61,134 @@ if not os.path.exists(ICONS_DIR):
     os.makedirs(ICONS_DIR)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'svg'}
+
+ 
+
+# DataSight DORA Metrics Fetcher Class
+
+class DataSightDORAFetcher:
+
+    """Fetches DORA metrics from HSBC DataSight platform."""
+
+    
+
+    def __init__(self, base_url: str, bearer_token: str):
+
+        self.base_url = base_url.rstrip('/')
+
+        self.headers = {
+
+            'Authorization': f'Bearer {bearer_token}',
+
+            'Content-Type': 'application/json'
+
+        }
+
+    
+
+    def fetch_lttd(self, from_date: str, to_date: str, teambook_ids: str, 
+
+                   teambook_level: int, page: int = 1, size: int = 50):
+
+        """Fetch Lead Time to Deploy (LTTD) metric."""
+
+        endpoint = f"{self.base_url}/releases/metric/lttd/teambook/metric"
+
+        params = {
+
+            'from': from_date,
+
+            'to': to_date,
+
+            'teambookIds': teambook_ids,
+
+            'teambookLevel': teambook_level,
+
+            'page': page,
+
+            'size': size
+
+        }
+
+        
+
+        try:
+
+            response = requests.get(endpoint, headers=self.headers, params=params, verify=False)
+
+            response.raise_for_status()
+
+            result = response.json()
+
+            return {
+
+                'metric': 'Lead Time to Deploy (LTTD)',
+
+                'status': 'success',
+
+                'data': result
+
+            }
+
+        except requests.exceptions.RequestException as e:
+
+            return {
+
+                'metric': 'Lead Time to Deploy (LTTD)',
+
+                'status': 'error',
+
+                'error': str(e),
+
+                'data': None
+
+            }
+
+    
+
+    def fetch_lttd_records(self, agg_key: str, page: int = 1, size: int = 50):
+
+        """Fetch detailed LTTD records using aggregation key."""
+
+        endpoint = f"{self.base_url}/releases/metric/lttd/teambook/records"
+
+        params = {
+
+            'aggKey': agg_key,
+
+            'page': page,
+
+            'size': size
+
+        }
+
+        
+
+        try:
+
+            response = requests.get(endpoint, headers=self.headers, params=params, verify=False)
+
+            response.raise_for_status()
+
+            return {
+
+                'status': 'success',
+
+                'data': response.json()
+
+            }
+
+        except requests.exceptions.RequestException as e:
+
+            return {
+
+                'status': 'error',
+
+                'error': str(e),
+
+                'data': None
+
+            }
 
  
 
@@ -987,15 +1121,7 @@ def fetch_lttd_records():
                 'error': 'DataSight bearer token not configured. Set DATASIGHT_BEARER_TOKEN environment variable.'
             }), 500
         
-        # Import the DataSight fetcher
-        import sys
-        datasight_path = os.path.join(BASE_DIR, 'DataSight_Automation')
-        if datasight_path not in sys.path:
-            sys.path.insert(0, datasight_path)
-        
-        from fetch_dora_metrics import DataSightDORAFetcher
-        
-        # Initialize fetcher
+        # Initialize DataSight fetcher (using integrated class)
         fetcher = DataSightDORAFetcher(base_url, bearer_token)
         
         # Step 1: Fetch LTTD metrics to get aggregation keys
