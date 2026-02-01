@@ -1154,10 +1154,34 @@ def fetch_lttd_records():
                 records = details_response['data'].get('data', [])
                 all_records.extend(records)
         
+        # Step 3: Filter records based on criteria
+        # Filter: LTTD Days > 15 AND DTT (L7 Pod) = "Data Assets&Provisioning Tech"
+        filtered_records = []
+        for record in all_records:
+            # Check LTTD Days > 15
+            lttd_days = record.get('lead_time_to_deploy_numeric_days')
+            if lttd_days is None:
+                continue
+            
+            try:
+                lttd_days_float = float(lttd_days)
+            except (ValueError, TypeError):
+                continue
+            
+            if lttd_days_float <= 15:
+                continue
+            
+            # Check DTT (L7 Pod) = "Data Assets&Provisioning Tech"
+            l7_pod = record.get('l4_business_unit', '') or record.get('l7_business_unit', '')
+            if l7_pod and 'Data Assets&Provisioning Tech' in l7_pod:
+                filtered_records.append(record)
+        
         return jsonify({
             'status': 'success',
-            'records': all_records,
-            'count': len(all_records)
+            'records': filtered_records,
+            'count': len(filtered_records),
+            'total_before_filter': len(all_records),
+            'filter_applied': 'LTTD Days > 15 AND DTT = "Data Assets&Provisioning Tech"'
         }), 200
         
     except Exception as e:

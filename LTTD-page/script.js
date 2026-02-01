@@ -115,7 +115,7 @@ class LTTDManager {
 
             if (data.status === 'success' && data.records) {
                 this.currentRecords = data.records;
-                this.renderTable(data.records);
+                this.renderTable(data.records, data.total_before_filter, data.filter_applied);
                 this.showResults();
             } else {
                 throw new Error(data.error || 'No records found');
@@ -129,7 +129,7 @@ class LTTDManager {
         }
     }
 
-    renderTable(records) {
+    renderTable(records, totalBeforeFilter, filterApplied) {
         const tbody = document.getElementById('lttdTableBody');
         tbody.innerHTML = '';
 
@@ -138,7 +138,8 @@ class LTTDManager {
                 <tr>
                     <td colspan="14" style="text-align: center; padding: 40px; color: #888;">
                         <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
-                        No LTTD records found for the selected criteria
+                        No LTTD records found matching the filter criteria
+                        ${totalBeforeFilter ? `<br><small style="margin-top: 8px; display: block;">(${totalBeforeFilter} total records fetched, 0 matched filter)</small>` : ''}
                     </td>
                 </tr>
             `;
@@ -173,7 +174,9 @@ class LTTDManager {
             tbody.appendChild(row);
         });
 
-        document.getElementById('recordCount').textContent = `${records.length} record${records.length !== 1 ? 's' : ''}`;
+        const countText = `${records.length} record${records.length !== 1 ? 's' : ''}`;
+        const filterText = totalBeforeFilter ? ` (filtered from ${totalBeforeFilter} total)` : '';
+        document.getElementById('recordCount').textContent = countText + filterText;
     }
 
     formatDate(dateString) {
