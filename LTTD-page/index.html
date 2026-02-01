@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LTTD Metrics - DataSight</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-content">
+                <h1><i class="fas fa-chart-line"></i> LTTD Metrics Dashboard</h1>
+                <p class="subtitle">Lead Time to Deploy - DataSight Analytics</p>
+            </div>
+            <a href="/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </header>
+
+        <div class="main-content">
+            <!-- Search Form Section -->
+            <section class="search-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-search"></i> Fetch LTTD Records</h2>
+                    <p>Enter parameters to retrieve Lead Time to Deploy metrics</p>
+                </div>
+
+                <form id="lttdForm" class="lttd-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="fromDate">
+                                <i class="fas fa-calendar-alt"></i> From Date
+                                <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="month" 
+                                id="fromDate" 
+                                name="fromDate" 
+                                required
+                                placeholder="YYYY-MM"
+                            />
+                            <small class="hint">Start month for metrics (e.g., 2026-01)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="toDate">
+                                <i class="fas fa-calendar-check"></i> To Date
+                                <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="month" 
+                                id="toDate" 
+                                name="toDate" 
+                                required
+                                placeholder="YYYY-MM"
+                            />
+                            <small class="hint">End month for metrics (e.g., 2026-01)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="teambookId">
+                                <i class="fas fa-users"></i> Teambook ID
+                                <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="teambookId" 
+                                name="teambookId" 
+                                required
+                                placeholder="e.g., 5449"
+                            />
+                            <small class="hint">Enter teambook identifier</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="level">
+                                <i class="fas fa-layer-group"></i> Level
+                                <span class="required">*</span>
+                            </label>
+                            <select id="level" name="level" required>
+                                <option value="">-- Select Level --</option>
+                                <option value="1">Level 1</option>
+                                <option value="2">Level 2</option>
+                                <option value="3">Level 3</option>
+                                <option value="4">Level 4</option>
+                                <option value="5">Level 5</option>
+                            </select>
+                            <small class="hint">Teambook hierarchy level</small>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="fetchBtn">
+                            <i class="fas fa-download"></i> Fetch LTTD Records
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="clearBtn">
+                            <i class="fas fa-eraser"></i> Clear Form
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Fetching LTTD records from DataSight...</p>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="error-message" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="errorText"></span>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-table"></i> LTTD Records</h2>
+                    <div class="results-actions">
+                        <span id="recordCount" class="record-count"></span>
+                        <button class="btn btn-export" id="exportBtn">
+                            <i class="fas fa-file-csv"></i> Export to CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="lttdTable" class="lttd-table">
+                        <thead>
+                            <tr>
+                                <th>Month-Year</th>
+                                <th>Change Reference</th>
+                                <th>Start Date</th>
+                                <th>Replica Item</th>
+                                <th>Applicant Group</th>
+                                <th>Assign Group</th>
+                                <th>Report Group</th>
+                                <th>DTT (L7 Pod)</th>
+                                <th>Requested By</th>
+                                <th>LTTD Days</th>
+                                <th>CR Processing Hurdle</th>
+                                <th>ICE CR Link</th>
+                                <th>CR First Commit URL</th>
+                                <th>Repo Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lttdTableBody">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
