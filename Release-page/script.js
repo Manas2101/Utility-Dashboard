@@ -475,7 +475,7 @@ class ReleaseManager {
 
         if (tabName === 'booking' && !this.editingReleaseId) {
 
-            const formTitle = document.querySelector('#booking-tab .tab-header h2');
+            let formTitle = document.querySelector('#booking-tab .tab-header h2');
 
             if (formTitle) {
 
@@ -483,7 +483,7 @@ class ReleaseManager {
 
             }
 
-            const submitButton = document.querySelector('button[type="submit"]');
+            let submitButton = document.querySelector('button[type="submit"]');
 
             if (submitButton) {
 
@@ -1195,7 +1195,7 @@ class ReleaseManager {
 
         // Update form title and button to indicate edit mode
 
-        const formTitle = document.querySelector('#booking-tab .tab-header h2');
+        let formTitle = document.querySelector('#booking-tab .tab-header h2');
 
         if (formTitle) {
 
@@ -1203,7 +1203,7 @@ class ReleaseManager {
 
         }
 
-        const submitButton = document.querySelector('button[type="submit"]');
+        let submitButton = document.querySelector('button[type="submit"]');
 
         if (submitButton) {
 
@@ -2935,7 +2935,7 @@ class ReleaseManager {
 
             this.editingReleaseId = null;
 
-            const formTitle = document.querySelector('#booking-tab .tab-header h2');
+            let formTitle = document.querySelector('#booking-tab .tab-header h2');
 
             if (formTitle) {
 
@@ -2947,7 +2947,7 @@ class ReleaseManager {
 
             // Reset button text
 
-            const submitButton = document.querySelector('button[type="submit"]');
+            let submitButton = document.querySelector('button[type="submit"]');
 
             if (submitButton) {
 
