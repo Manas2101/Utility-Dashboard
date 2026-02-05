@@ -330,14 +330,6 @@
 
     </form>
 
-    <div class="preview-block" id="previewBlock" style="display:none;">
-
-      <h2 style="font-size:18px;display:flex;align-items:center;gap:10px;margin:50px 0 14px;"><i class="fa fa-eye"></i>Submission Preview</h2>
-
-      <div class="json-preview" id="jsonPreview"></div>
-
-    </div>
-
     <div class="result-block" id="resultBlock" style="display:none;" data-repo-url="{{ repo_url }}">
 
       <h2>Access links</h2>
@@ -353,10 +345,6 @@
     (function(){
 
       const form = document.getElementById('utilityForm');
-
-      const previewBlock = document.getElementById('previewBlock');
-
-      const preview = document.getElementById('jsonPreview');
 
       const resultBlock = document.getElementById('resultBlock');
 
@@ -590,12 +578,6 @@
 
           
 
-          preview.textContent = JSON.stringify(previewData, null, 2);
-
-          previewBlock.style.display = 'block';
-
-          
-
           // Show result block with repository link in edit mode
 
           resultList.innerHTML = '';
@@ -728,7 +710,31 @@
 
           } else {
 
-            console.error('Backend error:', resp.status, await resp.text());
+            const errorText = await resp.text();
+
+            console.error('Backend error:', resp.status, errorText);
+
+            // Try to parse error response for PR existence check
+
+            try {
+
+              const errorJson = JSON.parse(errorText);
+
+              if (errorJson.pr && errorJson.pr.error && errorJson.pr.error.includes('already exists')) {
+
+                alert('⚠️ A Pull Request already exists for this utility. Please check the existing PR before creating a new one.');
+
+              } else if (errorJson.error) {
+
+                alert(`Error: ${errorJson.error}`);
+
+              }
+
+            } catch(e) {
+
+              alert(`Error submitting utility: ${resp.status} - ${errorText}`);
+
+            }
 
           }
 
@@ -739,10 +745,6 @@
         }
 
  
-
-        preview.textContent = JSON.stringify(data, null, 2);
-
-        previewBlock.style.display = 'block';
 
         // Minimal, non-refresh result display for new users
 
@@ -764,11 +766,31 @@
 
         }
 
-        // PR link
+        // PR link and status
 
-        if(saved && respJson && respJson.pr && respJson.pr.pr && respJson.pr.pr.url){
+        if(saved && respJson && respJson.pr){
 
-          items.push({label:'Pull Request', url: respJson.pr.pr.url});
+          if(respJson.pr.pr && respJson.pr.pr.url){
+
+            items.push({label:'Pull Request', url: respJson.pr.pr.url});
+
+          } else if(respJson.pr.error){
+
+            // Show PR error message
+
+            const errorMsg = respJson.pr.error;
+
+            if(errorMsg.includes('already exists') || errorMsg.includes('A pull request already exists')){
+
+              items.push({label:'PR Status', text: '⚠️ A Pull Request already exists for this utility', style: 'color: #FFB84D;'});
+
+            } else {
+
+              items.push({label:'PR Error', text: errorMsg, style: 'color: #FF6B6B;'});
+
+            }
+
+          }
 
         }
 
@@ -816,7 +838,7 @@
 
           } else {
 
-            li.textContent = `${it.label}: ${it.text}`;
+            li.innerHTML = `${it.label}: <span style="${it.style || ''}">${it.text}</span>`;
 
           }
 
@@ -828,13 +850,7 @@
 
  
 
-        if(!saved){
-
-          preview.insertAdjacentHTML('afterbegin','// UI-ONLY MODE: Not persisted to server. Copy JSON manually if needed.\n');
-
-          window.scrollTo({top: previewBlock.offsetTop - 20, behavior:'smooth'});
-
-        } else {
+        if(saved){
 
           // Do not refresh; scroll to links for easy access
 
