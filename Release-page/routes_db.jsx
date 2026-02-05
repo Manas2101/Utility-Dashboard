@@ -59,34 +59,62 @@ def get_release(release_id):
         return jsonify({"error": f"Failed to read release: {str(e)}"}), 500
 
 @release_bp.route('/api/releases', methods=['POST'])
-def create_release():
-    """Create a new release in database"""
+def create_or_save_releases():
+    """Create a new release OR bulk save releases (handles both single object and array)"""
     try:
-        release_data = request.get_json()
+        data = request.get_json()
         
-        if not isinstance(release_data, dict):
-            return jsonify({"error": "Invalid data format. Expected release object."}), 400
-        
-        # Validate required fields
-        required_fields = ['id', 'teamName', 'appName', 'releaseDate']
-        missing_fields = [field for field in required_fields if not release_data.get(field)]
-        
-        if missing_fields:
-            return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
-        
-        # Create release
-        release_id = db.create_release(release_data)
-        
-        print(f"✅ Created release: {release_id}")
-        return jsonify({
-            "success": True,
-            "message": "Release created successfully",
-            "id": release_id
-        }), 201
+        # Check if it's an array (bulk save) or single object (create one)
+        if isinstance(data, list):
+            # Bulk save mode - for backward compatibility with frontend
+            print(f"📦 Bulk save mode: {len(data)} releases")
+            
+            # Clear existing releases and insert new ones
+            with db.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM release_repositories')
+                cursor.execute('DELETE FROM releases')
+            
+            # Insert all releases
+            created_count = 0
+            for release in data:
+                try:
+                    db.create_release(release)
+                    created_count += 1
+                except Exception as e:
+                    print(f"⚠️ Failed to create release {release.get('id')}: {e}")
+            
+            print(f"✅ Bulk saved {created_count} releases to database")
+            return jsonify({
+                "success": True,
+                "message": f"Successfully saved {created_count} releases",
+                "count": created_count
+            }), 200
+            
+        elif isinstance(data, dict):
+            # Single release creation mode
+            # Validate required fields
+            required_fields = ['id', 'teamName', 'appName', 'releaseDate']
+            missing_fields = [field for field in required_fields if not data.get(field)]
+            
+            if missing_fields:
+                return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
+            
+            # Create release
+            release_id = db.create_release(data)
+            
+            print(f"✅ Created release: {release_id}")
+            return jsonify({
+                "success": True,
+                "message": "Release created successfully",
+                "id": release_id
+            }), 201
+        else:
+            return jsonify({"error": "Invalid data format. Expected release object or array of releases."}), 400
         
     except Exception as e:
-        print(f"❌ Error creating release: {e}")
-        return jsonify({"error": f"Failed to create release: {str(e)}"}), 500
+        print(f"❌ Error saving releases: {e}")
+        return jsonify({"error": f"Failed to save releases: {str(e)}"}), 500
 
 @release_bp.route('/api/releases/<release_id>', methods=['PUT'])
 def update_release(release_id):
