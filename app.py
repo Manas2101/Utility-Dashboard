@@ -1148,7 +1148,7 @@ def fetch_lttd_records():
                 continue
             
             # Fetch records for this aggregation key
-            details_response = fetcher.fetch_lttd_records(agg_key, size=100)
+            details_response = fetcher.fetch_lttd_records(agg_key, size=1000)
             
             if details_response['status'] == 'success' and details_response.get('data'):
                 records = details_response['data'].get('data', [])
@@ -1157,23 +1157,30 @@ def fetch_lttd_records():
         # Step 3: Filter records based on criteria
         # Filter: LTTD Days > 15 AND DTT (L7 Pod) = "Data Assets&Provisioning Tech"
         filtered_records = []
+        no_lttd_records = []
+        
         for record in all_records:
-            # Check LTTD Days > 15
+            # Check DTT (L7 Pod) = "Data Assets&Provisioning Tech" first
+            l7_pod = record.get('l4_business_unit', '') or record.get('l7_business_unit', '')
+            if not (l7_pod and 'Data Assets&Provisioning Tech' in l7_pod):
+                continue
+            
+            # Check LTTD Days
             lttd_days = record.get('lead_time_to_deploy_numeric_days')
-            if lttd_days is None:
+            
+            # Track records with no LTTD calculated (but from correct DTT)
+            if lttd_days is None or lttd_days == '' or lttd_days == 'N/A':
+                no_lttd_records.append(record)
                 continue
             
             try:
                 lttd_days_float = float(lttd_days)
             except (ValueError, TypeError):
+                no_lttd_records.append(record)
                 continue
             
-            if lttd_days_float <= 15:
-                continue
-            
-            # Check DTT (L7 Pod) = "Data Assets&Provisioning Tech"
-            l7_pod = record.get('l4_business_unit', '') or record.get('l7_business_unit', '')
-            if l7_pod and 'Data Assets&Provisioning Tech' in l7_pod:
+            # Only include records with LTTD > 15
+            if lttd_days_float > 15:
                 filtered_records.append(record)
         
         return jsonify({
@@ -1181,6 +1188,8 @@ def fetch_lttd_records():
             'records': filtered_records,
             'count': len(filtered_records),
             'total_before_filter': len(all_records),
+            'no_lttd_records': no_lttd_records,
+            'no_lttd_count': len(no_lttd_records),
             'filter_applied': 'LTTD Days > 15 AND DTT = "Data Assets&Provisioning Tech"'
         }), 200
         

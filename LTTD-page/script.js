@@ -3,6 +3,8 @@
 class LTTDManager {
     constructor() {
         this.currentRecords = [];
+        this.noLttdRecords = [];
+        this.showingNoLttd = false;
         this.init();
     }
 
@@ -15,6 +17,7 @@ class LTTDManager {
         const form = document.getElementById('lttdForm');
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
+        const toggleNoLttdBtn = document.getElementById('toggleNoLttdBtn');
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -27,6 +30,10 @@ class LTTDManager {
 
         exportBtn.addEventListener('click', () => {
             this.exportToCSV();
+        });
+
+        toggleNoLttdBtn.addEventListener('click', () => {
+            this.toggleNoLttdRecords();
         });
     }
 
@@ -115,6 +122,21 @@ class LTTDManager {
 
             if (data.status === 'success' && data.records) {
                 this.currentRecords = data.records;
+                this.noLttdRecords = data.no_lttd_records || [];
+                this.showingNoLttd = false;
+                
+                // Update no LTTD count and show button if there are records
+                const noLttdCount = document.getElementById('noLttdCount');
+                const toggleBtn = document.getElementById('toggleNoLttdBtn');
+                if (this.noLttdRecords.length > 0) {
+                    noLttdCount.textContent = this.noLttdRecords.length;
+                    toggleBtn.style.display = 'flex';
+                    toggleBtn.classList.remove('active');
+                    toggleBtn.innerHTML = `<i class="fas fa-eye"></i> Show Records with No LTTD (<span id="noLttdCount">${this.noLttdRecords.length}</span>)`;
+                } else {
+                    toggleBtn.style.display = 'none';
+                }
+                
                 this.renderTable(data.records, data.total_before_filter, data.filter_applied);
                 this.showResults();
             } else {
@@ -274,6 +296,24 @@ class LTTDManager {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    toggleNoLttdRecords() {
+        const toggleBtn = document.getElementById('toggleNoLttdBtn');
+        
+        if (this.showingNoLttd) {
+            // Switch back to filtered records
+            this.showingNoLttd = false;
+            this.renderTable(this.currentRecords, this.currentRecords.length + this.noLttdRecords.length, 'Filtered Records');
+            toggleBtn.classList.remove('active');
+            toggleBtn.innerHTML = `<i class="fas fa-eye"></i> Show Records with No LTTD (<span id="noLttdCount">${this.noLttdRecords.length}</span>)`;
+        } else {
+            // Switch to no LTTD records
+            this.showingNoLttd = true;
+            this.renderTable(this.noLttdRecords, this.currentRecords.length + this.noLttdRecords.length, 'Records with No LTTD');
+            toggleBtn.classList.add('active');
+            toggleBtn.innerHTML = `<i class="fas fa-eye-slash"></i> Hide Records with No LTTD`;
+        }
     }
 }
 

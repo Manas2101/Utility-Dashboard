@@ -205,6 +205,16 @@ body::before {
     box-shadow: 0 0 0 3px rgba(0, 135, 90, 0.1);
 }
 
+.form-group select option {
+    background: #1a1f3a;
+    color: #ffffff;
+    padding: 10px;
+}
+
+.form-group select option:hover {
+    background: #2a3550;
+}
+
 .form-group input::placeholder {
     color: #666;
 }
@@ -263,6 +273,33 @@ body::before {
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-toggle {
+    padding: 10px 20px;
+    background: rgba(219, 0, 17, 0.2);
+    color: #db0011;
+    border: 1px solid rgba(219, 0, 17, 0.3);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-toggle:hover {
+    background: rgba(219, 0, 17, 0.3);
+    border-color: rgba(219, 0, 17, 0.5);
+    transform: translateY(-2px);
+}
+
+.btn-toggle.active {
+    background: rgba(0, 135, 90, 0.2);
+    color: #00875a;
+    border-color: rgba(0, 135, 90, 0.3);
 }
 
 .btn-export {
