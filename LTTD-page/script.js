@@ -126,10 +126,8 @@ class LTTDManager {
                 this.showingNoLttd = false;
                 
                 // Update no LTTD count and show button if there are records
-                const noLttdCount = document.getElementById('noLttdCount');
                 const toggleBtn = document.getElementById('toggleNoLttdBtn');
                 if (this.noLttdRecords.length > 0) {
-                    noLttdCount.textContent = this.noLttdRecords.length;
                     toggleBtn.style.display = 'flex';
                     toggleBtn.classList.remove('active');
                     toggleBtn.innerHTML = `<i class="fas fa-eye"></i> Show Records with No LTTD (<span id="noLttdCount">${this.noLttdRecords.length}</span>)`;
