@@ -177,8 +177,8 @@ class LTTDManager {
             const year = record.year || '';
             const monthYear = month && year ? `${month}-${year}` : '';
             
-            // Extract application name from short_description
-            const appName = this.extractAppName(record.short_description || '');
+            // Use business_service field for application name
+            const appName = record.business_service || '';
 
             row.innerHTML = `
                 <td>${this.escapeHtml(monthYear)}</td>
@@ -238,13 +238,6 @@ class LTTDManager {
         return div.innerHTML;
     }
 
-    extractAppName(description) {
-        if (!description) return '';
-        // Extract application name before the first dash or colon
-        const match = description.match(/^([^-:]+)/);
-        return match ? match[1].trim() : description;
-    }
-
     exportToCSV() {
         if (!this.currentRecords || this.currentRecords.length === 0) {
             alert('No data to export');
@@ -274,7 +267,7 @@ class LTTDManager {
             const month = record.month || '';
             const year = record.year || '';
             const monthYear = month && year ? `${month}-${year}` : '';
-            const appName = this.extractAppName(record.short_description || '');
+            const appName = record.business_service || '';
 
             const row = [
                 monthYear,
