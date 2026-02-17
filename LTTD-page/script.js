@@ -87,10 +87,10 @@ class LTTDManager {
 
         const fromDate = document.getElementById('fromDate').value;
         const toDate = document.getElementById('toDate').value;
-        const teambookId = document.getElementById('teambookId').value.trim();
-        const level = document.getElementById('level').value;
+        const teambookId = '449'; // Hardcoded
+        const level = '2'; // Hardcoded
 
-        if (!fromDate || !toDate || !teambookId || !level) {
+        if (!fromDate || !toDate) {
             this.hideLoading();
             this.showError('Please fill in all required fields');
             return;
@@ -156,12 +156,13 @@ class LTTDManager {
         tbody.innerHTML = '';
 
         if (!records || records.length === 0) {
+            const message = this.showingNoLttd ? 'No records with missing LTTD found' : 'No LTTD records found matching the filter criteria';
             tbody.innerHTML = `
                 <tr>
                     <td colspan="14" style="text-align: center; padding: 40px; color: #888;">
                         <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
-                        No LTTD records found matching the filter criteria
-                        ${totalBeforeFilter ? `<br><small style="margin-top: 8px; display: block;">(${totalBeforeFilter} total records fetched, 0 matched filter)</small>` : ''}
+                        ${message}
+                        ${totalBeforeFilter && !this.showingNoLttd ? `<br><small style="margin-top: 8px; display: block;">(${totalBeforeFilter} total records fetched, 0 matched filter)</small>` : ''}
                     </td>
                 </tr>
             `;
@@ -175,12 +176,15 @@ class LTTDManager {
             const month = record.month || '';
             const year = record.year || '';
             const monthYear = month && year ? `${month}-${year}` : '';
+            
+            // Extract application name from short_description
+            const appName = this.extractAppName(record.short_description || '');
 
             row.innerHTML = `
                 <td>${this.escapeHtml(monthYear)}</td>
                 <td>${this.escapeHtml(record.id || record.cr_id || '')}</td>
                 <td>${this.formatDate(record.start_date)}</td>
-                <td>${this.escapeHtml(record.short_description || '')}</td>
+                <td colspan="2">${this.escapeHtml(appName)}</td>
                 <td>${this.escapeHtml(record.requested_by || '')}</td>
                 <td>${this.escapeHtml(record.assignment_group || '')}</td>
                 <td>${this.escapeHtml(record.l3_business_unit || '')}</td>
@@ -234,6 +238,13 @@ class LTTDManager {
         return div.innerHTML;
     }
 
+    extractAppName(description) {
+        if (!description) return '';
+        // Extract application name before the first dash or colon
+        const match = description.match(/^([^-:]+)/);
+        return match ? match[1].trim() : description;
+    }
+
     exportToCSV() {
         if (!this.currentRecords || this.currentRecords.length === 0) {
             alert('No data to export');
@@ -244,7 +255,7 @@ class LTTDManager {
             'Month-Year',
             'Change Reference',
             'Start Date',
-            'Replica Item',
+            'Application Name',
             'Applicant Group',
             'Assign Group',
             'Report Group',
@@ -263,12 +274,13 @@ class LTTDManager {
             const month = record.month || '';
             const year = record.year || '';
             const monthYear = month && year ? `${month}-${year}` : '';
+            const appName = this.extractAppName(record.short_description || '');
 
             const row = [
                 monthYear,
                 record.id || record.cr_id || '',
                 record.start_date || '',
-                record.short_description || '',
+                appName,
                 record.requested_by || '',
                 record.assignment_group || '',
                 record.l3_business_unit || '',
@@ -300,17 +312,18 @@ class LTTDManager {
 
     toggleNoLttdRecords() {
         const toggleBtn = document.getElementById('toggleNoLttdBtn');
+        const totalRecords = this.currentRecords.length + this.noLttdRecords.length;
         
         if (this.showingNoLttd) {
             // Switch back to filtered records
             this.showingNoLttd = false;
-            this.renderTable(this.currentRecords, this.currentRecords.length + this.noLttdRecords.length, 'Filtered Records');
+            this.renderTable(this.currentRecords, totalRecords, 'Filtered Records');
             toggleBtn.classList.remove('active');
             toggleBtn.innerHTML = `<i class="fas fa-eye"></i> Show Records with No LTTD (<span id="noLttdCount">${this.noLttdRecords.length}</span>)`;
         } else {
             // Switch to no LTTD records
             this.showingNoLttd = true;
-            this.renderTable(this.noLttdRecords, this.currentRecords.length + this.noLttdRecords.length, 'Records with No LTTD');
+            this.renderTable(this.noLttdRecords, totalRecords, 'Records with No LTTD');
             toggleBtn.classList.add('active');
             toggleBtn.innerHTML = `<i class="fas fa-eye-slash"></i> Hide Records with No LTTD`;
         }

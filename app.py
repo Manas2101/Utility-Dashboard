@@ -408,6 +408,18 @@ app = Flask(__name__,
 
  
 
+# Add response handler to prevent JSON downloads
+
+@app.after_request
+def after_request(response):
+    """Ensure JSON responses are not downloaded"""
+    if response.content_type and 'application/json' in response.content_type:
+        # Remove any Content-Disposition header that might trigger download
+        response.headers.pop('Content-Disposition', None)
+        # Ensure proper content type
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    return response
+
 # Register Release App Blueprint (if successfully imported)
 
  
@@ -2215,19 +2227,19 @@ def fetch_lttd_records():
 
         to_date = data.get('to_date')
 
-        teambook_id = data.get('teambook_id')
+        teambook_id = data.get('teambook_id', '449')  # Default to 449
 
-        level = data.get('level')
+        level = data.get('level', 2)  # Default to 2
 
        
 
-        if not all([from_date, to_date, teambook_id, level]):
+        if not all([from_date, to_date]):
 
             return jsonify({
 
                 'status': 'error',
 
-                'error': 'Missing required parameters: from_date, to_date, teambook_id, level'
+                'error': 'Missing required parameters: from_date, to_date'
 
             }), 400
 
