@@ -127,12 +127,14 @@ class LTTDManager {
                 
                 // Update no LTTD count and show button if there are records
                 const toggleBtn = document.getElementById('toggleNoLttdBtn');
-                if (this.noLttdRecords.length > 0) {
-                    toggleBtn.style.display = 'flex';
-                    toggleBtn.classList.remove('active');
-                    toggleBtn.innerHTML = `<i class="fas fa-eye"></i> Show Records with No LTTD (<span id="noLttdCount">${this.noLttdRecords.length}</span>)`;
-                } else {
-                    toggleBtn.style.display = 'none';
+                if (toggleBtn) {
+                    if (this.noLttdRecords.length > 0) {
+                        toggleBtn.style.display = 'flex';
+                        toggleBtn.classList.remove('active');
+                        toggleBtn.innerHTML = `<i class="fas fa-eye"></i> Show Records with No LTTD (<span id="noLttdCount">${this.noLttdRecords.length}</span>)`;
+                    } else {
+                        toggleBtn.style.display = 'none';
+                    }
                 }
                 
                 this.renderTable(data.records, data.total_before_filter, data.filter_applied);
