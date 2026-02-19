@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LTTD Metrics - DataSight</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/automation/lttd/styles.css">
+    <link rel="stylesheet" href="/automation/lttd/modal-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -92,6 +93,9 @@
                         <button class="btn btn-toggle" id="toggleNoLttdBtn" style="display: none;">
                             <i class="fas fa-eye"></i> Show Records with No LTTD (<span id="noLttdCount">0</span>)
                         </button>
+                        <button class="btn btn-email" id="sendEmailBtn" style="display: none;">
+                            <i class="fas fa-envelope"></i> Send Email Notifications
+                        </button>
                         <button class="btn btn-export" id="exportBtn">
                             <i class="fas fa-file-csv"></i> Export to CSV
                         </button>
@@ -124,6 +128,69 @@
                     </table>
                 </div>
             </section>
+        </div>
+    </div>
+
+    <!-- Email Configuration Modal -->
+    <div id="emailModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-envelope"></i> Send LTTD Email Notification</h3>
+                <span class="close-modal" id="closeModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Send a combined email with all High LTTD and Missing LTTD records.</p>
+                <div id="fetchedEmailInfo" class="fetched-email-info" style="display: none;">
+                    <i class="fas fa-info-circle"></i> <span></span>
+                </div>
+                <div class="form-group">
+                    <label for="toEmail">
+                        <i class="fas fa-user"></i> To Email <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        id="toEmail" 
+                        name="toEmail" 
+                        required
+                        placeholder="recipient@hsbc.com"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="ccEmail1">
+                        <i class="fas fa-users"></i> CC Email 1
+                    </label>
+                    <input 
+                        type="email" 
+                        id="ccEmail1" 
+                        name="ccEmail1" 
+                        placeholder="cc1@hsbc.com"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="ccEmail2">
+                        <i class="fas fa-users"></i> CC Email 2
+                    </label>
+                    <input 
+                        type="email" 
+                        id="ccEmail2" 
+                        name="ccEmail2" 
+                        placeholder="cc2@hsbc.com"
+                    />
+                </div>
+                <div class="email-summary">
+                    <p><strong>Email will include:</strong></p>
+                    <ul>
+                        <li>High LTTD Records (>15 days): <span id="modalHighCount">0</span></li>
+                        <li>Missing LTTD Records: <span id="modalNoLttdCount">0</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelEmailBtn">Cancel</button>
+                <button class="btn btn-primary" id="confirmSendEmailBtn">
+                    <i class="fas fa-paper-plane"></i> Send Email
+                </button>
+            </div>
         </div>
     </div>
 

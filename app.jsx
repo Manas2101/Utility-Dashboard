@@ -48,6 +48,12 @@ from werkzeug.utils import secure_filename
 
 import urllib.request
 
+import smtplib
+
+from email.mime.text import MIMEText
+
+from email.mime.multipart import MIMEMultipart
+
  
 
 import urllib.error
@@ -2472,6 +2478,500 @@ def fetch_lttd_records():
             'error': f'Failed to fetch LTTD records: {str(e)}'
 
         }), 500
+
+@app.route('/api/lttd/fetch-emails', methods=['POST'])
+
+def fetch_lttd_emails():
+
+    """
+
+    Fetch email addresses for LTTD records using Teambook API.
+
+    Expects JSON body with: records (list of records with RequestedByEmployeeId)
+
+    """
+
+    try:
+
+        data = request.get_json()
+
+        records = data.get('records', [])
+
+        
+
+        if not records:
+
+            return jsonify({
+
+                'status': 'error',
+
+                'error': 'No records provided'
+
+            }), 400
+
+        
+
+        # Get Teambook API credentials from environment
+
+        teambook_base_url = os.getenv('TEAMBOOK_BASE_URL', 'https://api-teambook.global.hsbc')
+
+        teambook_token = os.getenv('TEAMBOOK_BEARER_TOKEN')
+
+        
+
+        if not teambook_token:
+
+            return jsonify({
+
+                'status': 'error',
+
+                'error': 'Teambook bearer token not configured. Set TEAMBOOK_BEARER_TOKEN environment variable.'
+
+            }), 500
+
+        
+
+        # Collect unique staff IDs
+
+        staff_ids = set()
+
+        for record in records:
+
+            staff_id = record.get('RequestedByEmployeeId') or record.get('requested_by_employee_id')
+
+            if staff_id:
+
+                staff_ids.add(staff_id)
+
+        
+
+        # Fetch email addresses from Teambook API
+
+        email_map = {}  # staff_id -> email
+
+        failed_ids = []
+
+        
+
+        for staff_id in staff_ids:
+
+            try:
+
+                url = f"{teambook_base_url}/v1/people?staffID={staff_id}"
+
+                req = urllib.request.Request(url)
+
+                req.add_header('Authorization', f'Bearer {teambook_token}')
+
+                req.add_header('Accept', 'application/json')
+
+                
+
+                with urllib.request.urlopen(req, timeout=10) as response:
+
+                    result = json.loads(response.read().decode('utf-8'))
+
+                    
+
+                    # Extract email from response
+
+                    if result and isinstance(result, list) and len(result) > 0:
+
+                        person = result[0]
+
+                        email = person.get('email') or person.get('emailAddress') or person.get('Email')
+
+                        if email:
+
+                            email_map[staff_id] = email
+
+                        else:
+
+                            failed_ids.append(staff_id)
+
+                    else:
+
+                        failed_ids.append(staff_id)
+
+            except Exception as e:
+
+                print(f"Failed to fetch email for staff ID {staff_id}: {e}")
+
+                failed_ids.append(staff_id)
+
+        
+
+        # Enrich records with email addresses
+
+        enriched_records = []
+
+        for record in records:
+
+            staff_id = record.get('RequestedByEmployeeId') or record.get('requested_by_employee_id')
+
+            email = email_map.get(staff_id, None)
+
+            enriched_record = {**record, 'email': email}
+
+            enriched_records.append(enriched_record)
+
+        
+
+        return jsonify({
+
+            'status': 'success',
+
+            'records': enriched_records,
+
+            'email_count': len(email_map),
+
+            'failed_count': len(failed_ids),
+
+            'failed_ids': list(failed_ids)
+
+        }), 200
+
+        
+
+    except Exception as e:
+
+        import traceback
+
+        traceback.print_exc()
+
+        return jsonify({
+
+            'status': 'error',
+
+            'error': f'Failed to fetch emails: {str(e)}'
+
+        }), 500
+
+
+
+@app.route('/api/lttd/send-emails', methods=['POST'])
+
+def send_lttd_emails():
+
+    """
+
+    Send one combined email notification with all LTTD records (high LTTD and no LTTD).
+
+    Expects JSON body with: high_lttd_records, no_lttd_records, to_email, cc_emails (list)
+
+    """
+
+    try:
+
+        data = request.get_json()
+
+        high_lttd_records = data.get('high_lttd_records', [])
+
+        no_lttd_records = data.get('no_lttd_records', [])
+
+        to_email = data.get('to_email')
+
+        cc_emails = data.get('cc_emails', [])
+
+        
+
+        if not to_email:
+
+            return jsonify({
+
+                'status': 'error',
+
+                'error': 'Recipient email address (to_email) is required'
+
+            }), 400
+
+        
+
+        if not high_lttd_records and not no_lttd_records:
+
+            return jsonify({
+
+                'status': 'error',
+
+                'error': 'No records provided'
+
+            }), 400
+
+        
+
+        # Get SMTP configuration from environment
+
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.hsbc.com')
+
+        smtp_port = int(os.getenv('SMTP_PORT', '25'))
+
+        smtp_user = os.getenv('SMTP_USER')
+
+        smtp_password = os.getenv('SMTP_PASSWORD')
+
+        from_email = os.getenv('FROM_EMAIL', 'noreply@hsbc.com')
+
+        
+
+        try:
+
+            # Create email content
+
+            subject = 'LTTD Metrics Report - Action Required'
+
+            
+
+            # Build email body
+
+            body = f"""
+
+Dear Team,
+
+
+
+This is an automated notification regarding change records with Lead Time to Deploy (LTTD) metrics.
+
+
+
+"""
+
+            
+
+            # Add high LTTD records section
+
+            if high_lttd_records:
+
+                body += f"""="" * 80
+
+HIGH LTTD RECORDS (LTTD > 15 days)
+
+="" * 80
+
+
+
+Total Records: {len(high_lttd_records)}
+
+
+
+"""
+
+                
+
+                for idx, record in enumerate(high_lttd_records, 1):
+
+                    cr_id = record.get('id') or record.get('cr_id', 'N/A')
+
+                    app_name = record.get('business_service', 'N/A')
+
+                    lttd_days = record.get('lead_time_to_deploy_numeric_days', 'N/A')
+
+                    requested_by = record.get('requested_by', 'N/A')
+
+                    hurdle = record.get('CRProcessingHurdle') or record.get('cr_processing_hurdle', 'N/A')
+
+                    month_year = f"{record.get('month', '')}-{record.get('year', '')}" if record.get('month') else 'N/A'
+
+                    
+
+                    body += f"""{idx}. Change Reference: {cr_id}
+
+   Month-Year: {month_year}
+
+   Application: {app_name}
+
+   LTTD Days: {lttd_days}
+
+   Requested By: {requested_by}
+
+   Processing Hurdle: {hurdle}
+
+
+
+"""
+
+            
+
+            # Add no LTTD records section
+
+            if no_lttd_records:
+
+                body += f"""
+
+="" * 80
+
+MISSING LTTD RECORDS (LTTD Not Calculated)
+
+="" * 80
+
+
+
+Total Records: {len(no_lttd_records)}
+
+
+
+"""
+
+                
+
+                for idx, record in enumerate(no_lttd_records, 1):
+
+                    cr_id = record.get('id') or record.get('cr_id', 'N/A')
+
+                    app_name = record.get('business_service', 'N/A')
+
+                    requested_by = record.get('requested_by', 'N/A')
+
+                    hurdle = record.get('CRProcessingHurdle') or record.get('cr_processing_hurdle', 'N/A')
+
+                    month_year = f"{record.get('month', '')}-{record.get('year', '')}" if record.get('month') else 'N/A'
+
+                    lttd_eligible = record.get('LTTDEligible') or record.get('lttd_eligible', 'N/A')
+
+                    
+
+                    body += f"""{idx}. Change Reference: {cr_id}
+
+   Month-Year: {month_year}
+
+   Application: {app_name}
+
+   Requested By: {requested_by}
+
+   LTTD Eligible: {lttd_eligible}
+
+   Processing Hurdle: {hurdle}
+
+
+
+"""
+
+            
+
+            body += f"""
+
+="" * 80
+
+SUMMARY
+
+="" * 80
+
+
+
+High LTTD Records (>15 days): {len(high_lttd_records)}
+
+Missing LTTD Records: {len(no_lttd_records)}
+
+Total Records: {len(high_lttd_records) + len(no_lttd_records)}
+
+
+
+Please review these records and take necessary action to improve deployment lead times.
+
+
+
+Best regards,
+
+Automation Team
+
+"""
+
+            
+
+            # Create message
+
+            msg = MIMEMultipart()
+
+            msg['From'] = from_email
+
+            msg['To'] = to_email
+
+            
+
+            # Add CC recipients
+
+            if cc_emails:
+
+                msg['Cc'] = ', '.join(cc_emails)
+
+            
+
+            msg['Subject'] = subject
+
+            msg.attach(MIMEText(body, 'plain'))
+
+            
+
+            # Combine To and CC for actual sending
+
+            all_recipients = [to_email] + cc_emails
+
+            
+
+            # Send email
+
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+
+                if smtp_user and smtp_password:
+
+                    server.starttls()
+
+                    server.login(smtp_user, smtp_password)
+
+                server.send_message(msg, to_addrs=all_recipients)
+
+            
+
+            print(f"Combined LTTD email sent to {to_email} with CC: {cc_emails}")
+
+            
+
+            return jsonify({
+
+                'status': 'success',
+
+                'message': 'Email sent successfully',
+
+                'to': to_email,
+
+                'cc': cc_emails,
+
+                'high_lttd_count': len(high_lttd_records),
+
+                'no_lttd_count': len(no_lttd_records)
+
+            }), 200
+
+            
+
+        except Exception as e:
+
+            print(f"Failed to send email: {e}")
+
+            return jsonify({
+
+                'status': 'error',
+
+                'error': f'Failed to send email: {str(e)}'
+
+            }), 500
+
+        
+
+    except Exception as e:
+
+        import traceback
+
+        traceback.print_exc()
+
+        return jsonify({
+
+            'status': 'error',
+
+            'error': f'Failed to send emails: {str(e)}'
+
+        }), 500
+
+
 
  
 

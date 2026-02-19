@@ -18,6 +18,7 @@ class LTTDManager {
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
         const toggleNoLttdBtn = document.getElementById('toggleNoLttdBtn');
+        const sendEmailBtn = document.getElementById('sendEmailBtn');
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -35,6 +36,45 @@ class LTTDManager {
         toggleNoLttdBtn.addEventListener('click', () => {
             this.toggleNoLttdRecords();
         });
+
+        if (sendEmailBtn) {
+            sendEmailBtn.addEventListener('click', () => {
+                this.showEmailModal();
+            });
+        }
+
+        // Email modal event listeners
+        const closeModal = document.getElementById('closeModal');
+        const cancelEmailBtn = document.getElementById('cancelEmailBtn');
+        const confirmSendEmailBtn = document.getElementById('confirmSendEmailBtn');
+
+        if (closeModal) {
+            closeModal.addEventListener('click', () => {
+                this.hideEmailModal();
+            });
+        }
+
+        if (cancelEmailBtn) {
+            cancelEmailBtn.addEventListener('click', () => {
+                this.hideEmailModal();
+            });
+        }
+
+        if (confirmSendEmailBtn) {
+            confirmSendEmailBtn.addEventListener('click', () => {
+                this.sendCombinedEmail();
+            });
+        }
+
+        // Close modal when clicking outside
+        const emailModal = document.getElementById('emailModal');
+        if (emailModal) {
+            emailModal.addEventListener('click', (e) => {
+                if (e.target === emailModal) {
+                    this.hideEmailModal();
+                }
+            });
+        }
     }
 
     setDefaultDates() {
@@ -128,6 +168,8 @@ class LTTDManager {
                 
                 // Update no LTTD count and show button if there are records
                 const toggleBtn = document.getElementById('toggleNoLttdBtn');
+                const sendEmailBtn = document.getElementById('sendEmailBtn');
+                
                 if (toggleBtn) {
                     if (this.noLttdRecords.length > 0) {
                         toggleBtn.style.display = 'flex';
@@ -135,6 +177,15 @@ class LTTDManager {
                         toggleBtn.innerHTML = `<i class="fas fa-eye"></i> Show Records with No LTTD (<span id="noLttdCount">${this.noLttdRecords.length}</span>)`;
                     } else {
                         toggleBtn.style.display = 'none';
+                    }
+                }
+                
+                // Show email button if there are records (either high LTTD or no LTTD)
+                if (sendEmailBtn) {
+                    if (this.currentRecords.length > 0 || this.noLttdRecords.length > 0) {
+                        sendEmailBtn.style.display = 'flex';
+                    } else {
+                        sendEmailBtn.style.display = 'none';
                     }
                 }
                 
@@ -387,6 +438,184 @@ class LTTDManager {
             this.renderGroupedNoLttdTable();
             toggleBtn.classList.add('active');
             toggleBtn.innerHTML = `<i class="fas fa-eye-slash"></i> Hide Records with No LTTD`;
+        }
+    }
+
+    async showEmailModal() {
+        // First, fetch emails from Teambook API
+        const sendEmailBtn = document.getElementById('sendEmailBtn');
+        const originalText = sendEmailBtn.innerHTML;
+        sendEmailBtn.disabled = true;
+        sendEmailBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching emails...';
+
+        try {
+            // Combine all records to fetch emails
+            const allRecords = [...this.currentRecords, ...this.noLttdRecords];
+            
+            const fetchResponse = await fetch('/automation/lttd/api/lttd/fetch-emails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ records: allRecords })
+            });
+
+            if (!fetchResponse.ok) {
+                const errorData = await fetchResponse.json();
+                throw new Error(errorData.error || 'Failed to fetch email addresses');
+            }
+
+            const emailData = await fetchResponse.json();
+            console.log('Email fetch result:', emailData);
+
+            if (emailData.status !== 'success') {
+                throw new Error(emailData.error || 'Failed to fetch email addresses');
+            }
+
+            // Store enriched records with emails
+            this.enrichedHighLttdRecords = emailData.records.filter(r => 
+                this.currentRecords.some(cr => cr.id === r.id)
+            );
+            this.enrichedNoLttdRecords = emailData.records.filter(r => 
+                this.noLttdRecords.some(nr => nr.id === r.id)
+            );
+
+            // Get unique email addresses
+            const uniqueEmails = [...new Set(emailData.records
+                .filter(r => r.email)
+                .map(r => r.email))];
+
+            if (uniqueEmails.length === 0) {
+                alert('No email addresses found from Teambook API. Please check the records.');
+                return;
+            }
+
+            // Use the first email as primary recipient, or show all if multiple
+            const primaryEmail = uniqueEmails[0];
+            
+            // Show modal with fetched email
+            const modal = document.getElementById('emailModal');
+            const modalHighCount = document.getElementById('modalHighCount');
+            const modalNoLttdCount = document.getElementById('modalNoLttdCount');
+            const toEmailInput = document.getElementById('toEmail');
+
+            if (modal) {
+                modalHighCount.textContent = this.currentRecords.length;
+                modalNoLttdCount.textContent = this.noLttdRecords.length;
+                toEmailInput.value = primaryEmail;
+                
+                // Show info about fetched emails
+                const emailInfo = document.getElementById('fetchedEmailInfo');
+                if (emailInfo) {
+                    const infoSpan = emailInfo.querySelector('span');
+                    if (uniqueEmails.length > 1) {
+                        infoSpan.textContent = `Found ${uniqueEmails.length} unique email addresses. Using ${primaryEmail} as primary recipient.`;
+                        emailInfo.style.display = 'flex';
+                    } else {
+                        infoSpan.textContent = `Fetched email from Teambook API: ${primaryEmail}`;
+                        emailInfo.style.display = 'flex';
+                    }
+                }
+                
+                modal.style.display = 'flex';
+            }
+
+        } catch (error) {
+            console.error('Error fetching emails:', error);
+            alert(`Failed to fetch email addresses: ${error.message}`);
+        } finally {
+            sendEmailBtn.disabled = false;
+            sendEmailBtn.innerHTML = originalText;
+        }
+    }
+
+    hideEmailModal() {
+        const modal = document.getElementById('emailModal');
+        if (modal) {
+            modal.style.display = 'none';
+            // Clear form
+            document.getElementById('toEmail').value = '';
+            document.getElementById('ccEmail1').value = '';
+            document.getElementById('ccEmail2').value = '';
+            
+            const emailInfo = document.getElementById('fetchedEmailInfo');
+            if (emailInfo) {
+                emailInfo.style.display = 'none';
+            }
+        }
+    }
+
+    async sendCombinedEmail() {
+        const toEmail = document.getElementById('toEmail').value.trim();
+        const ccEmail1 = document.getElementById('ccEmail1').value.trim();
+        const ccEmail2 = document.getElementById('ccEmail2').value.trim();
+
+        if (!toEmail) {
+            alert('Please enter a recipient email address.');
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(toEmail)) {
+            alert('Please enter a valid email address.');
+            return;
+        }
+
+        // Build CC list
+        const ccEmails = [];
+        if (ccEmail1 && emailRegex.test(ccEmail1)) {
+            ccEmails.push(ccEmail1);
+        }
+        if (ccEmail2 && emailRegex.test(ccEmail2)) {
+            ccEmails.push(ccEmail2);
+        }
+
+        const confirmSendBtn = document.getElementById('confirmSendEmailBtn');
+        const originalText = confirmSendBtn.innerHTML;
+        confirmSendBtn.disabled = true;
+        confirmSendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+        try {
+            // Use enriched records with emails if available, otherwise use original records
+            const highLttdRecords = this.enrichedHighLttdRecords || this.currentRecords;
+            const noLttdRecords = this.enrichedNoLttdRecords || this.noLttdRecords;
+
+            const sendResponse = await fetch('/automation/lttd/api/lttd/send-emails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    high_lttd_records: highLttdRecords,
+                    no_lttd_records: noLttdRecords,
+                    to_email: toEmail,
+                    cc_emails: ccEmails
+                })
+            });
+
+            if (!sendResponse.ok) {
+                const errorData = await sendResponse.json();
+                throw new Error(errorData.error || 'Failed to send email');
+            }
+
+            const sendData = await sendResponse.json();
+            console.log('Email send result:', sendData);
+
+            if (sendData.status === 'success') {
+                const ccInfo = ccEmails.length > 0 ? ` (CC: ${ccEmails.join(', ')})` : '';
+                alert(`Email sent successfully to ${toEmail}${ccInfo}\n\nHigh LTTD Records: ${sendData.high_lttd_count}\nMissing LTTD Records: ${sendData.no_lttd_count}`);
+                this.hideEmailModal();
+            } else {
+                throw new Error(sendData.error || 'Failed to send email');
+            }
+
+        } catch (error) {
+            console.error('Error sending email:', error);
+            alert(`Failed to send email: ${error.message}`);
+        } finally {
+            confirmSendBtn.disabled = false;
+            confirmSendBtn.innerHTML = originalText;
         }
     }
 }
