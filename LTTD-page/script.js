@@ -311,13 +311,13 @@ class LTTDManager {
         this.groupedNoLttd.forEach(group => {
             // Add group header row
             const headerRow = document.createElement('tr');
-            headerRow.style.backgroundColor = '#f0f4f8';
+            headerRow.style.backgroundColor = 'rgba(59, 130, 246, 0.15)';
             headerRow.style.fontWeight = 'bold';
             headerRow.innerHTML = `
-                <td colspan="14" style="padding: 12px; border-left: 4px solid #3b82f6;">
-                    <i class="fas fa-folder-open" style="margin-right: 8px;"></i>
+                <td colspan="14" style="padding: 12px; border-left: 4px solid #3b82f6; color: #ffffff;">
+                    <i class="fas fa-folder-open" style="margin-right: 8px; color: #3b82f6;"></i>
                     ${this.escapeHtml(group.app_name)} 
-                    <span style="color: #666; font-weight: normal; margin-left: 8px;">(${group.count} record${group.count !== 1 ? 's' : ''})</span>
+                    <span style="color: #93c5fd; font-weight: normal; margin-left: 8px;">(${group.count} record${group.count !== 1 ? 's' : ''})</span>
                 </td>
             `;
             tbody.appendChild(headerRow);
