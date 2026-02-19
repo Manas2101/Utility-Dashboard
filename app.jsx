@@ -2363,13 +2363,15 @@ def fetch_lttd_records():
 
             # Criteria: lttd_eligible = true AND cr_processing_hurdle != 'LTTD successfully calculated'
 
-            lttd_eligible = record.get('lttd_eligible', False)
+            # Try different field name variations (API may use different casing)
 
-            cr_processing_hurdle = record.get('cr_processing_hurdle', '')
+            lttd_eligible = record.get('LTTDEligible') or record.get('lttd_eligible') or record.get('lttdEligible', False)
+
+            cr_processing_hurdle = record.get('CRProcessingHurdle') or record.get('cr_processing_hurdle') or record.get('crProcessingHurdle', '')
 
             
 
-            if lttd_eligible and cr_processing_hurdle != 'LTTD successfully calculated':
+            if lttd_eligible and cr_processing_hurdle != 'LTTD Successfully Calculated':
 
                 no_lttd_records.append(record)
 
