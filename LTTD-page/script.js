@@ -123,6 +123,7 @@ class LTTDManager {
             if (data.status === 'success' && data.records) {
                 this.currentRecords = data.records;
                 this.noLttdRecords = data.no_lttd_records || [];
+                this.groupedNoLttd = data.grouped_no_lttd || [];
                 this.showingNoLttd = false;
                 
                 // Update no LTTD count and show button if there are records
@@ -238,6 +239,73 @@ class LTTDManager {
         return div.innerHTML;
     }
 
+    renderGroupedNoLttdTable() {
+        const tbody = document.getElementById('lttdTableBody');
+        tbody.innerHTML = '';
+
+        if (!this.groupedNoLttd || this.groupedNoLttd.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="14" style="text-align: center; padding: 40px; color: #888;">
+                        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                        No records with missing LTTD found
+                    </td>
+                </tr>
+            `;
+            document.getElementById('recordCount').textContent = '0 records';
+            return;
+        }
+
+        // Render grouped records
+        this.groupedNoLttd.forEach(group => {
+            // Add group header row
+            const headerRow = document.createElement('tr');
+            headerRow.style.backgroundColor = '#f0f4f8';
+            headerRow.style.fontWeight = 'bold';
+            headerRow.innerHTML = `
+                <td colspan="14" style="padding: 12px; border-left: 4px solid #3b82f6;">
+                    <i class="fas fa-folder-open" style="margin-right: 8px;"></i>
+                    ${this.escapeHtml(group.app_name)} 
+                    <span style="color: #666; font-weight: normal; margin-left: 8px;">(${group.count} record${group.count !== 1 ? 's' : ''})</span>
+                </td>
+            `;
+            tbody.appendChild(headerRow);
+
+            // Add records for this group
+            group.records.forEach(record => {
+                const row = document.createElement('tr');
+                
+                const month = record.month || '';
+                const year = record.year || '';
+                const monthYear = month && year ? `${month}-${year}` : '';
+                const appName = record.business_service || '';
+
+                row.innerHTML = `
+                    <td>${this.escapeHtml(monthYear)}</td>
+                    <td>${this.escapeHtml(record.id || record.cr_id || '')}</td>
+                    <td>${this.formatDate(record.start_date)}</td>
+                    <td colspan="2">${this.escapeHtml(appName)}</td>
+                    <td>${this.escapeHtml(record.requested_by || '')}</td>
+                    <td>${this.escapeHtml(record.assignment_group || '')}</td>
+                    <td>${this.escapeHtml(record.l3_business_unit || '')}</td>
+                    <td>${this.escapeHtml(record.l4_business_unit || '')}</td>
+                    <td>${this.escapeHtml(record.requested_by || '')}</td>
+                    <td><strong style="color: #dc2626;">N/A</strong></td>
+                    <td>${this.escapeHtml(record.cr_processing_hurdle || '')}</td>
+                    <td>${this.renderLink(record.ice_cr_link, 'ICE CR')}</td>
+                    <td>${this.renderLink(record.cr_first_commit_url, 'Commit')}</td>
+                    <td>${this.renderLink(record.repo_link, 'Repo')}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        });
+
+        const totalCount = this.noLttdRecords.length;
+        const groupCount = this.groupedNoLttd.length;
+        document.getElementById('recordCount').textContent = `${totalCount} record${totalCount !== 1 ? 's' : ''} in ${groupCount} app${groupCount !== 1 ? 's' : ''}`;
+    }
+
     exportToCSV() {
         if (!this.currentRecords || this.currentRecords.length === 0) {
             alert('No data to export');
@@ -314,9 +382,9 @@ class LTTDManager {
             toggleBtn.classList.remove('active');
             toggleBtn.innerHTML = `<i class="fas fa-eye"></i> Show Records with No LTTD (<span id="noLttdCount">${this.noLttdRecords.length}</span>)`;
         } else {
-            // Switch to no LTTD records
+            // Switch to no LTTD records - show grouped view
             this.showingNoLttd = true;
-            this.renderTable(this.noLttdRecords, totalRecords, 'Records with No LTTD');
+            this.renderGroupedNoLttdTable();
             toggleBtn.classList.add('active');
             toggleBtn.innerHTML = `<i class="fas fa-eye-slash"></i> Hide Records with No LTTD`;
         }

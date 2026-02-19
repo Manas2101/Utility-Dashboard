@@ -2361,11 +2361,19 @@ def fetch_lttd_records():
 
             # Track records with no LTTD calculated (but from correct DTT)
 
-            if lttd_days is None or lttd_days == '' or lttd_days == 'N/A':
+            # Criteria: lttd_eligible = true AND cr_processing_hurdle != 'LTTD successfully calculated'
+
+            lttd_eligible = record.get('lttd_eligible', False)
+
+            cr_processing_hurdle = record.get('cr_processing_hurdle', '')
+
+            
+
+            if lttd_eligible and cr_processing_hurdle != 'LTTD successfully calculated':
 
                 no_lttd_records.append(record)
 
-                continue
+                # Don't continue - still check if it should be in main filtered list
 
            
 
@@ -2374,8 +2382,6 @@ def fetch_lttd_records():
                 lttd_days_float = float(lttd_days)
 
             except (ValueError, TypeError):
-
-                no_lttd_records.append(record)
 
                 continue
 
@@ -2388,6 +2394,46 @@ def fetch_lttd_records():
                 filtered_records.append(record)
 
        
+
+        # Group no_lttd_records by application name (business_service)
+
+        from collections import defaultdict
+
+        grouped_no_lttd = defaultdict(list)
+
+        for record in no_lttd_records:
+
+            app_name = record.get('business_service', 'Unknown')
+
+            grouped_no_lttd[app_name].append(record)
+
+        
+
+        # Convert to list format with app name and records
+
+        grouped_no_lttd_list = [
+
+            {
+
+                'app_name': app_name,
+
+                'count': len(records),
+
+                'records': records
+
+            }
+
+            for app_name, records in grouped_no_lttd.items()
+
+        ]
+
+        
+
+        # Sort by count (descending) then by app name
+
+        grouped_no_lttd_list.sort(key=lambda x: (-x['count'], x['app_name']))
+
+        
 
         return jsonify({
 
@@ -2402,6 +2448,8 @@ def fetch_lttd_records():
             'no_lttd_records': no_lttd_records,
 
             'no_lttd_count': len(no_lttd_records),
+
+            'grouped_no_lttd': grouped_no_lttd_list,
 
             'filter_applied': 'LTTD Days > 15 AND DTT = "Data Assets&Provisioning Tech"'
 
