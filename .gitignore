@@ -1,0 +1,36 @@
+# SQLite Database Files
+Release-page/releases.db
+Release-page/releases.db-journal
+Release-page/*.db
+Release-page/*.db-journal
+
+# Database Exports and Backups
+Release-page/releases_export.json
+Release-page/releases.json.backup
+Release-page/releases.json.migrated_backup
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.venv
+env/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
