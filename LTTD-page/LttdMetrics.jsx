@@ -42,6 +42,9 @@ const LttdMetrics = () => {
   // Set default dates to current month
   const currentMonth = dayjs();
 
+  // API base URL - Points to the deployed Flask backend
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://automation-utility-dashboard-cert.ikp101.snp.cloud.uk.hsbc';
+
   const fetchLTTDRecords = async (values) => {
     setLoading(true);
     
@@ -51,7 +54,7 @@ const LttdMetrics = () => {
     const level = '2';
 
     try {
-      const response = await fetch('/api/lttd/records', {
+      const response = await fetch(`${API_BASE_URL}/api/lttd/records`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
