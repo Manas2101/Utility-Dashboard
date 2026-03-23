@@ -2654,7 +2654,7 @@ def fetch_lttd_emails():
 
 
 
-@app.route('/api/lttd/fetch-teambook-emails', methods=['POST'])
+@app.route(f'/{APP_NAME}/api/lttd/fetch-teambook-emails', methods=['POST'])
 def fetch_teambook_emails():
     """
     Fetch email addresses from Teambook API for given staff IDs.
@@ -2725,7 +2725,7 @@ def fetch_teambook_emails():
         }), 500
 
 
-@app.route('/api/lttd/send-email', methods=['POST'])
+@app.route(f'/{APP_NAME}/api/lttd/send-email', methods=['POST'])
 def send_lttd_email_bulk():
     """
     Send email to multiple recipients with high LTTD and no LTTD records.
