@@ -2654,6 +2654,77 @@ def fetch_lttd_emails():
 
 
 
+@app.route('/api/lttd/fetch-teambook-emails', methods=['POST'])
+def fetch_teambook_emails():
+    """
+    Fetch email addresses from Teambook API for given staff IDs.
+    Expects JSON body with: staff_ids (list)
+    """
+    try:
+        data = request.get_json()
+        staff_ids = data.get('staff_ids', [])
+        
+        if not staff_ids:
+            return jsonify({
+                'status': 'error',
+                'error': 'No staff IDs provided'
+            }), 400
+        
+        # Get Teambook token from environment
+        teambook_token = os.getenv('TEAMBOOK_TOKEN')
+        if not teambook_token:
+            return jsonify({
+                'status': 'error',
+                'error': 'Teambook token not configured in environment'
+            }), 500
+        
+        emails = {}
+        
+        # Fetch email for each staff ID
+        for staff_id in staff_ids:
+            try:
+                response = requests.get(
+                    f'https://api-teambook.global.hsbc/v1/people?staffid={staff_id}',
+                    headers={
+                        'Accept': 'text/plain',
+                        'Authorization': f'Bearer {teambook_token}'
+                    },
+                    timeout=10,
+                    verify=False  # Disable SSL verification for internal HSBC APIs
+                )
+                
+                if response.status_code == 200:
+                    data_text = response.text
+                    # Try to extract email from response
+                    # Adjust the parsing based on actual response format
+                    email_match = re.search(r'Email[:\s]+([^\s,\n]+@[^\s,\n]+)', data_text, re.IGNORECASE)
+                    if email_match:
+                        emails[staff_id] = email_match.group(1).strip()
+                    else:
+                        print(f"Could not extract email from response for staff ID {staff_id}")
+                        emails[staff_id] = None
+                else:
+                    print(f"Failed to fetch email for staff ID {staff_id}: {response.status_code}")
+                    emails[staff_id] = None
+                    
+            except Exception as e:
+                print(f"Error fetching email for staff ID {staff_id}: {e}")
+                emails[staff_id] = None
+        
+        return jsonify({
+            'status': 'success',
+            'emails': emails
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'status': 'error',
+            'error': f'Failed to fetch emails: {str(e)}'
+        }), 500
+
+
 @app.route('/api/lttd/send-email', methods=['POST'])
 def send_lttd_email_bulk():
     """

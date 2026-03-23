@@ -462,38 +462,30 @@ class LTTDManager {
             
             console.log('Fetching emails for staff IDs:', allStaffIds);
             
-            // Fetch emails from Teambook API for each staff ID
-            const emailPromises = allStaffIds.map(async (staffId) => {
-                try {
-                    const response = await fetch(`https://api-teambook.global.hsbc/v1/people?staffid=${staffId}`, {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'text/plain',
-                            'Authorization': 'Bearer ' + (localStorage.getItem('teambook_token') || '')
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        console.warn(`Failed to fetch email for staff ID ${staffId}`);
-                        return null;
-                    }
-                    
-                    const data = await response.text();
-                    // Parse the response to extract email
-                    // Assuming the response contains "Email" field
-                    const emailMatch = data.match(/Email[:\s]+([^\s,\n]+@[^\s,\n]+)/i);
-                    if (emailMatch) {
-                        return emailMatch[1].trim();
-                    }
-                    return null;
-                } catch (error) {
-                    console.error(`Error fetching email for staff ID ${staffId}:`, error);
-                    return null;
-                }
+            // Call Flask backend to fetch emails from Teambook API
+            const response = await fetch('/automation/lttd/api/lttd/fetch-teambook-emails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    staff_ids: allStaffIds
+                })
             });
             
-            const emails = await Promise.all(emailPromises);
-            const allEmails = emails.filter(email => email !== null);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to fetch emails from Teambook');
+            }
+            
+            const emailData = await response.json();
+            
+            if (emailData.status !== 'success') {
+                throw new Error(emailData.error || 'Failed to fetch emails');
+            }
+            
+            // Extract emails from response (emails is a dict: {staffId: email})
+            const allEmails = Object.values(emailData.emails).filter(email => email !== null);
             
             console.log('Fetched emails:', allEmails);
             
