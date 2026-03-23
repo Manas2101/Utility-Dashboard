@@ -2695,16 +2695,36 @@ def fetch_teambook_emails():
                 
                 if response.status_code == 200:
                     data_text = response.text
-                    # Try to extract email from response
-                    # Adjust the parsing based on actual response format
-                    email_match = re.search(r'Email[:\s]+([^\s,\n]+@[^\s,\n]+)', data_text, re.IGNORECASE)
+                    print(f"Teambook API response for staff ID {staff_id}: {data_text[:200]}")  # Log first 200 chars
+                    
+                    # Try to parse as JSON first
+                    try:
+                        data_json = response.json()
+                        # Try common JSON field names
+                        email = (data_json.get('Email') or 
+                                data_json.get('email') or 
+                                data_json.get('EmailAddress') or
+                                data_json.get('emailAddress') or
+                                data_json.get('mail'))
+                        if email:
+                            emails[staff_id] = email.strip()
+                            print(f"Found email for {staff_id}: {email}")
+                            continue
+                    except:
+                        pass  # Not JSON, try text parsing
+                    
+                    # Try to extract email from text response using regex
+                    email_match = re.search(r'([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})', data_text)
                     if email_match:
                         emails[staff_id] = email_match.group(1).strip()
+                        print(f"Extracted email for {staff_id}: {email_match.group(1)}")
                     else:
                         print(f"Could not extract email from response for staff ID {staff_id}")
+                        print(f"Response content: {data_text}")
                         emails[staff_id] = None
                 else:
-                    print(f"Failed to fetch email for staff ID {staff_id}: {response.status_code}")
+                    print(f"Failed to fetch email for staff ID {staff_id}: HTTP {response.status_code}")
+                    print(f"Response: {response.text[:200]}")
                     emails[staff_id] = None
                     
             except Exception as e:
