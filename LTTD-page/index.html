@@ -139,21 +139,35 @@
                 <span class="close-modal" id="closeModal">&times;</span>
             </div>
             <div class="modal-body">
-                <p>Send a combined email with all High LTTD and Missing LTTD records.</p>
+                <p>Send a combined email with all High LTTD and Missing LTTD records to all team members.</p>
                 <div id="fetchedEmailInfo" class="fetched-email-info" style="display: none;">
                     <i class="fas fa-info-circle"></i> <span></span>
                 </div>
                 <div class="form-group">
-                    <label for="toEmail">
-                        <i class="fas fa-user"></i> To Email <span class="required">*</span>
+                    <label for="fromEmail">
+                        <i class="fas fa-paper-plane"></i> From Email <span class="required">*</span>
                     </label>
                     <input 
                         type="email" 
+                        id="fromEmail" 
+                        name="fromEmail" 
+                        required
+                        placeholder="your-email@hsbc.com"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="toEmail">
+                        <i class="fas fa-users"></i> To Email(s) <span class="required">*</span>
+                    </label>
+                    <textarea 
                         id="toEmail" 
                         name="toEmail" 
                         required
-                        placeholder="recipient@hsbc.com"
-                    />
+                        placeholder="recipient1@hsbc.com, recipient2@hsbc.com"
+                        rows="3"
+                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;"
+                    ></textarea>
+                    <small style="color: #666;">Multiple emails separated by commas. Pre-filled with all team members from records.</small>
                 </div>
                 <div class="form-group">
                     <label for="ccEmail1">

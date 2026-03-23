@@ -21,7 +21,8 @@ import {
   DownloadOutlined,
   EyeOutlined,
   EyeInvisibleOutlined,
-  LineChartOutlined
+  LineChartOutlined,
+  MailOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
@@ -38,6 +39,9 @@ const LttdMetrics = () => {
   const [groupedNoLttd, setGroupedNoLttd] = useState([]);
   const [showingNoLttd, setShowingNoLttd] = useState(false);
   const [totalBeforeFilter, setTotalBeforeFilter] = useState(0);
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
+  const [emailForm] = Form.useForm();
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // Set default dates to current month
   const currentMonth = dayjs();
@@ -161,6 +165,77 @@ const LttdMetrics = () => {
 
   const toggleNoLttdRecords = () => {
     setShowingNoLttd(!showingNoLttd);
+  };
+
+  // Show email modal and prepare recipient list
+  const showEmailModal = () => {
+    // Get all unique requested_by emails from high LTTD and no LTTD records
+    const highLttdEmails = currentRecords
+      .filter(r => r.lead_time_to_deploy_numeric_days > 15)
+      .map(r => r.requested_by)
+      .filter(email => email && email.includes('@'));
+    
+    const noLttdEmails = noLttdRecords
+      .map(r => r.requested_by)
+      .filter(email => email && email.includes('@'));
+    
+    const allEmails = [...new Set([...highLttdEmails, ...noLttdEmails])];
+    
+    // Pre-fill the To field with all recipients (comma-separated)
+    emailForm.setFieldsValue({
+      toEmail: allEmails.join(', ')
+    });
+    
+    setEmailModalVisible(true);
+  };
+
+  // Send email to all recipients
+  const sendEmail = async (values) => {
+    setSendingEmail(true);
+    
+    try {
+      // Filter high LTTD records (>15 days)
+      const highLttdRecords = currentRecords.filter(
+        r => r.lead_time_to_deploy_numeric_days > 15
+      );
+      
+      const response = await fetch(`${API_BASE_URL}/api/lttd/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to_emails: values.toEmail.split(',').map(e => e.trim()).filter(e => e),
+          cc_emails: [
+            values.ccEmail1,
+            values.ccEmail2
+          ].filter(e => e && e.trim()),
+          from_email: values.fromEmail,
+          high_lttd_records: highLttdRecords,
+          no_lttd_records: noLttdRecords,
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send email');
+      }
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        message.success(`Email sent successfully to ${data.recipient_count} recipient(s)`);
+        setEmailModalVisible(false);
+        emailForm.resetFields();
+      } else {
+        throw new Error(data.error || 'Failed to send email');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      message.error(error.message || 'Failed to send email');
+    } finally {
+      setSendingEmail(false);
+    }
   };
 
   const columns = [
@@ -337,6 +412,14 @@ const LttdMetrics = () => {
                     {showingNoLttd ? 'Hide' : 'Show'} No LTTD ({noLttdRecords.length})
                   </Button>
                 )}
+                {hasRecords && (
+                  <Button
+                    icon={<MailOutlined />}
+                    onClick={showEmailModal}
+                  >
+                    Send Email
+                  </Button>
+                )}
                 <Button 
                   icon={<DownloadOutlined />}
                   onClick={exportToCSV}
@@ -371,6 +454,105 @@ const LttdMetrics = () => {
         )}
       </div>
 
+      {/* Email Modal */}
+      <Modal
+        title="Send LTTD Email Notification"
+        open={emailModalVisible}
+        onCancel={() => {
+          setEmailModalVisible(false);
+          emailForm.resetFields();
+        }}
+        footer={null}
+        width={700}
+      >
+        <Alert
+          message="Email will be sent to all team members with high LTTD (>15 days) or missing LTTD records"
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+        
+        <Form
+          form={emailForm}
+          layout="vertical"
+          onFinish={sendEmail}
+        >
+          <Form.Item
+            label="From Email"
+            name="fromEmail"
+            rules={[
+              { required: true, message: 'Please enter sender email' },
+              { type: 'email', message: 'Please enter a valid email' }
+            ]}
+            tooltip="This will be the sender's email address"
+          >
+            <Input placeholder="your-email@hsbc.com" />
+          </Form.Item>
+
+          <Form.Item
+            label="To Email(s)"
+            name="toEmail"
+            rules={[
+              { required: true, message: 'Please enter recipient email(s)' }
+            ]}
+            tooltip="Multiple emails separated by commas. Pre-filled with all team members from records."
+          >
+            <Input.TextArea 
+              placeholder="recipient1@hsbc.com, recipient2@hsbc.com" 
+              rows={3}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="CC Email 1"
+            name="ccEmail1"
+            rules={[{ type: 'email', message: 'Please enter a valid email' }]}
+          >
+            <Input placeholder="cc1@hsbc.com" />
+          </Form.Item>
+
+          <Form.Item
+            label="CC Email 2"
+            name="ccEmail2"
+            rules={[{ type: 'email', message: 'Please enter a valid email' }]}
+          >
+            <Input placeholder="cc2@hsbc.com" />
+          </Form.Item>
+
+          <Alert
+            message="Email Summary"
+            description={
+              <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+                <li>High LTTD Records (&gt;15 days): {currentRecords.filter(r => r.lead_time_to_deploy_numeric_days > 15).length}</li>
+                <li>Missing LTTD Records: {noLttdRecords.length}</li>
+                <li>Total Recipients: {emailForm.getFieldValue('toEmail')?.split(',').filter(e => e.trim()).length || 0}</li>
+              </ul>
+            }
+            type="warning"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Space style={{ float: 'right' }}>
+              <Button onClick={() => {
+                setEmailModalVisible(false);
+                emailForm.resetFields();
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                icon={<MailOutlined />}
+                loading={sendingEmail}
+              >
+                Send Email
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

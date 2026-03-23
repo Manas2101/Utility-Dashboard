@@ -442,90 +442,42 @@ class LTTDManager {
     }
 
     async showEmailModal() {
-        // First, fetch emails from Teambook API
-        const sendEmailBtn = document.getElementById('sendEmailBtn');
-        const originalText = sendEmailBtn.innerHTML;
-        sendEmailBtn.disabled = true;
-        sendEmailBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching emails...';
+        // Extract unique emails from high LTTD (>15 days) and no LTTD records
+        const highLttdEmails = this.currentRecords
+            .filter(r => r.lead_time_to_deploy_numeric_days > 15)
+            .map(r => r.requested_by)
+            .filter(email => email && email.includes('@'));
+        
+        const noLttdEmails = this.noLttdRecords
+            .map(r => r.requested_by)
+            .filter(email => email && email.includes('@'));
+        
+        const allEmails = [...new Set([...highLttdEmails, ...noLttdEmails])];
+        
+        // Show modal with pre-filled emails
+        const modal = document.getElementById('emailModal');
+        const modalHighCount = document.getElementById('modalHighCount');
+        const modalNoLttdCount = document.getElementById('modalNoLttdCount');
+        const toEmailInput = document.getElementById('toEmail');
+        const emailInfo = document.getElementById('fetchedEmailInfo');
 
-        try {
-            // Combine all records to fetch emails
-            const allRecords = [...this.currentRecords, ...this.noLttdRecords];
+        if (modal) {
+            // Update counts
+            const highLttdCount = this.currentRecords.filter(r => r.lead_time_to_deploy_numeric_days > 15).length;
+            modalHighCount.textContent = highLttdCount;
+            modalNoLttdCount.textContent = this.noLttdRecords.length;
             
-            const fetchResponse = await fetch('/automation/lttd/api/lttd/fetch-emails', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ records: allRecords })
-            });
-
-            if (!fetchResponse.ok) {
-                const errorData = await fetchResponse.json();
-                throw new Error(errorData.error || 'Failed to fetch email addresses');
-            }
-
-            const emailData = await fetchResponse.json();
-            console.log('Email fetch result:', emailData);
-
-            if (emailData.status !== 'success') {
-                throw new Error(emailData.error || 'Failed to fetch email addresses');
-            }
-
-            // Store enriched records with emails
-            this.enrichedHighLttdRecords = emailData.records.filter(r => 
-                this.currentRecords.some(cr => cr.id === r.id)
-            );
-            this.enrichedNoLttdRecords = emailData.records.filter(r => 
-                this.noLttdRecords.some(nr => nr.id === r.id)
-            );
-
-            // Get unique email addresses
-            const uniqueEmails = [...new Set(emailData.records
-                .filter(r => r.email)
-                .map(r => r.email))];
-
-            if (uniqueEmails.length === 0) {
-                alert('No email addresses found from Teambook API. Please check the records.');
-                return;
-            }
-
-            // Use the first email as primary recipient, or show all if multiple
-            const primaryEmail = uniqueEmails[0];
+            // Pre-fill To field with all unique emails
+            toEmailInput.value = allEmails.join(', ');
             
-            // Show modal with fetched email
-            const modal = document.getElementById('emailModal');
-            const modalHighCount = document.getElementById('modalHighCount');
-            const modalNoLttdCount = document.getElementById('modalNoLttdCount');
-            const toEmailInput = document.getElementById('toEmail');
-
-            if (modal) {
-                modalHighCount.textContent = this.currentRecords.length;
-                modalNoLttdCount.textContent = this.noLttdRecords.length;
-                toEmailInput.value = primaryEmail;
-                
-                // Show info about fetched emails
-                const emailInfo = document.getElementById('fetchedEmailInfo');
-                if (emailInfo) {
-                    const infoSpan = emailInfo.querySelector('span');
-                    if (uniqueEmails.length > 1) {
-                        infoSpan.textContent = `Found ${uniqueEmails.length} unique email addresses. Using ${primaryEmail} as primary recipient.`;
-                        emailInfo.style.display = 'flex';
-                    } else {
-                        infoSpan.textContent = `Fetched email from Teambook API: ${primaryEmail}`;
-                        emailInfo.style.display = 'flex';
-                    }
-                }
-                
-                modal.style.display = 'flex';
+            // Show info about recipients
+            if (emailInfo) {
+                const infoSpan = emailInfo.querySelector('span');
+                infoSpan.textContent = `Found ${allEmails.length} unique recipient(s) from records. You can edit the list below.`;
+                emailInfo.style.display = 'flex';
             }
-
-        } catch (error) {
-            console.error('Error fetching emails:', error);
-            alert(`Failed to fetch email addresses: ${error.message}`);
-        } finally {
-            sendEmailBtn.disabled = false;
-            sendEmailBtn.innerHTML = originalText;
+            
+            modal.style.display = 'flex';
         }
     }
 
@@ -534,6 +486,7 @@ class LTTDManager {
         if (modal) {
             modal.style.display = 'none';
             // Clear form
+            document.getElementById('fromEmail').value = '';
             document.getElementById('toEmail').value = '';
             document.getElementById('ccEmail1').value = '';
             document.getElementById('ccEmail2').value = '';
@@ -546,20 +499,37 @@ class LTTDManager {
     }
 
     async sendCombinedEmail() {
-        const toEmail = document.getElementById('toEmail').value.trim();
+        const fromEmail = document.getElementById('fromEmail').value.trim();
+        const toEmails = document.getElementById('toEmail').value.trim();
         const ccEmail1 = document.getElementById('ccEmail1').value.trim();
         const ccEmail2 = document.getElementById('ccEmail2').value.trim();
 
-        if (!toEmail) {
-            alert('Please enter a recipient email address.');
+        if (!fromEmail) {
+            alert('Please enter your email address (From).');
+            return;
+        }
+
+        if (!toEmails) {
+            alert('Please enter at least one recipient email address.');
             return;
         }
 
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(toEmail)) {
-            alert('Please enter a valid email address.');
+        if (!emailRegex.test(fromEmail)) {
+            alert('Please enter a valid From email address.');
             return;
+        }
+
+        // Parse To emails (comma-separated)
+        const toEmailList = toEmails.split(',').map(e => e.trim()).filter(e => e);
+        
+        // Validate all To emails
+        for (const email of toEmailList) {
+            if (!emailRegex.test(email)) {
+                alert(`Invalid email address: ${email}`);
+                return;
+            }
         }
 
         // Build CC list
@@ -577,20 +547,22 @@ class LTTDManager {
         confirmSendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
         try {
-            // Use enriched records with emails if available, otherwise use original records
-            const highLttdRecords = this.enrichedHighLttdRecords || this.currentRecords;
-            const noLttdRecords = this.enrichedNoLttdRecords || this.noLttdRecords;
+            // Filter high LTTD records (>15 days)
+            const highLttdRecords = this.currentRecords.filter(
+                r => r.lead_time_to_deploy_numeric_days > 15
+            );
 
-            const sendResponse = await fetch('/automation/lttd/api/lttd/send-emails', {
+            const sendResponse = await fetch('/api/lttd/send-email', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
+                    from_email: fromEmail,
+                    to_emails: toEmailList,
+                    cc_emails: ccEmails,
                     high_lttd_records: highLttdRecords,
-                    no_lttd_records: noLttdRecords,
-                    to_email: toEmail,
-                    cc_emails: ccEmails
+                    no_lttd_records: this.noLttdRecords
                 })
             });
 
@@ -603,8 +575,8 @@ class LTTDManager {
             console.log('Email send result:', sendData);
 
             if (sendData.status === 'success') {
-                const ccInfo = ccEmails.length > 0 ? ` (CC: ${ccEmails.join(', ')})` : '';
-                alert(`Email sent successfully to ${toEmail}${ccInfo}\n\nHigh LTTD Records: ${sendData.high_lttd_count}\nMissing LTTD Records: ${sendData.no_lttd_count}`);
+                const ccInfo = ccEmails.length > 0 ? `\nCC: ${ccEmails.join(', ')}` : '';
+                alert(`Email sent successfully!\n\nFrom: ${fromEmail}\nTo: ${sendData.recipient_count} recipient(s)${ccInfo}\n\nHigh LTTD Records: ${sendData.high_lttd_count}\nMissing LTTD Records: ${sendData.no_lttd_count}`);
                 this.hideEmailModal();
             } else {
                 throw new Error(sendData.error || 'Failed to send email');

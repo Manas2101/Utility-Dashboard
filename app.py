@@ -40,6 +40,8 @@ from datetime import datetime
 
 from flask import Flask, render_template, send_from_directory, jsonify, request
 
+from flask_cors import CORS
+
  
 
 from werkzeug.utils import secure_filename
@@ -407,6 +409,9 @@ app = Flask(__name__,
  
 
             template_folder="templates")
+
+# Enable CORS to allow requests from the CDM platform
+CORS(app)
 
  
 
@@ -2647,6 +2652,205 @@ def fetch_lttd_emails():
 
         }), 500
 
+
+
+@app.route('/api/lttd/send-email', methods=['POST'])
+def send_lttd_email_bulk():
+    """
+    Send email to multiple recipients with high LTTD and no LTTD records.
+    Expects JSON body with: to_emails (list), cc_emails (list), from_email, high_lttd_records, no_lttd_records
+    """
+    try:
+        data = request.get_json()
+        to_emails = data.get('to_emails', [])
+        cc_emails = data.get('cc_emails', [])
+        from_email = data.get('from_email')
+        high_lttd_records = data.get('high_lttd_records', [])
+        no_lttd_records = data.get('no_lttd_records', [])
+        
+        if not to_emails:
+            return jsonify({
+                'status': 'error',
+                'error': 'At least one recipient email (to_emails) is required'
+            }), 400
+        
+        if not from_email:
+            return jsonify({
+                'status': 'error',
+                'error': 'Sender email (from_email) is required'
+            }), 400
+        
+        if not high_lttd_records and not no_lttd_records:
+            return jsonify({
+                'status': 'error',
+                'error': 'No records provided'
+            }), 400
+        
+        # Get SMTP configuration from environment
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.hsbc.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '25'))
+        smtp_user = os.getenv('SMTP_USER')
+        smtp_password = os.getenv('SMTP_PASSWORD')
+        
+        try:
+            # Create email content
+            subject = 'LTTD Metrics Report - Action Required'
+            
+            # Build HTML email body
+            body_html = f"""
+<html>
+<head>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .header {{ background-color: #0066cc; color: white; padding: 20px; text-align: center; }}
+        .content {{ padding: 20px; }}
+        .section {{ margin-bottom: 30px; }}
+        .section-title {{ background-color: #f0f0f0; padding: 10px; font-weight: bold; border-left: 4px solid #0066cc; }}
+        .record {{ background-color: #f9f9f9; padding: 15px; margin: 10px 0; border-left: 3px solid #ff6600; }}
+        .record.critical {{ border-left-color: #cc0000; }}
+        .summary {{ background-color: #e6f2ff; padding: 15px; border-radius: 5px; }}
+        .footer {{ text-align: center; padding: 20px; color: #666; font-size: 12px; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LTTD Metrics Report</h1>
+        <p>Lead Time to Deploy - Action Required</p>
+    </div>
+    
+    <div class="content">
+        <p>Dear Team,</p>
+        <p>This is an automated notification regarding change records with Lead Time to Deploy (LTTD) metrics that require your attention.</p>
+"""
+            
+            # Add high LTTD records section
+            if high_lttd_records:
+                body_html += f"""
+        <div class="section">
+            <div class="section-title">⚠️ HIGH LTTD RECORDS (LTTD &gt; 15 days)</div>
+            <p><strong>Total Records:</strong> {len(high_lttd_records)}</p>
+"""
+                for idx, record in enumerate(high_lttd_records, 1):
+                    cr_id = record.get('id') or record.get('cr_id', 'N/A')
+                    app_name = record.get('business_service', 'N/A')
+                    lttd_days = record.get('lead_time_to_deploy_numeric_days', 'N/A')
+                    requested_by = record.get('requested_by', 'N/A')
+                    hurdle = record.get('CRProcessingHurdle') or record.get('cr_processing_hurdle', 'N/A')
+                    month_year = f"{record.get('month', '')}-{record.get('year', '')}" if record.get('month') else 'N/A'
+                    
+                    body_html += f"""
+            <div class="record critical">
+                <strong>{idx}. Change Reference:</strong> {cr_id}<br>
+                <strong>Month-Year:</strong> {month_year}<br>
+                <strong>Application:</strong> {app_name}<br>
+                <strong>LTTD Days:</strong> <span style="color: #cc0000; font-weight: bold;">{lttd_days}</span><br>
+                <strong>Requested By:</strong> {requested_by}<br>
+                <strong>Processing Hurdle:</strong> {hurdle}
+            </div>
+"""
+                body_html += """
+        </div>
+"""
+            
+            # Add no LTTD records section
+            if no_lttd_records:
+                body_html += f"""
+        <div class="section">
+            <div class="section-title">❌ MISSING LTTD RECORDS (LTTD Not Calculated)</div>
+            <p><strong>Total Records:</strong> {len(no_lttd_records)}</p>
+"""
+                for idx, record in enumerate(no_lttd_records, 1):
+                    cr_id = record.get('id') or record.get('cr_id', 'N/A')
+                    app_name = record.get('business_service', 'N/A')
+                    requested_by = record.get('requested_by', 'N/A')
+                    hurdle = record.get('CRProcessingHurdle') or record.get('cr_processing_hurdle', 'N/A')
+                    month_year = f"{record.get('month', '')}-{record.get('year', '')}" if record.get('month') else 'N/A'
+                    
+                    body_html += f"""
+            <div class="record">
+                <strong>{idx}. Change Reference:</strong> {cr_id}<br>
+                <strong>Month-Year:</strong> {month_year}<br>
+                <strong>Application:</strong> {app_name}<br>
+                <strong>Requested By:</strong> {requested_by}<br>
+                <strong>Processing Hurdle:</strong> {hurdle}
+            </div>
+"""
+                body_html += """
+        </div>
+"""
+            
+            # Add summary
+            body_html += f"""
+        <div class="summary">
+            <h3>📊 Summary</h3>
+            <ul>
+                <li><strong>High LTTD Records (&gt;15 days):</strong> {len(high_lttd_records)}</li>
+                <li><strong>Missing LTTD Records:</strong> {len(no_lttd_records)}</li>
+                <li><strong>Total Records:</strong> {len(high_lttd_records) + len(no_lttd_records)}</li>
+            </ul>
+            <p>Please review these records and take necessary action to improve deployment lead times.</p>
+        </div>
+        
+        <p>Best regards,<br>Automation Team</p>
+    </div>
+    
+    <div class="footer">
+        <p>This is an automated email. Please do not reply.</p>
+    </div>
+</body>
+</html>
+"""
+            
+            # Create message
+            msg = MIMEMultipart('alternative')
+            msg['From'] = from_email
+            msg['To'] = ', '.join(to_emails)
+            msg['Subject'] = subject
+            
+            # Add CC recipients
+            if cc_emails:
+                msg['Cc'] = ', '.join(cc_emails)
+            
+            # Attach HTML body
+            msg.attach(MIMEText(body_html, 'html'))
+            
+            # Combine To and CC for actual sending
+            all_recipients = to_emails + cc_emails
+            
+            # Send email
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                if smtp_user and smtp_password:
+                    server.starttls()
+                    server.login(smtp_user, smtp_password)
+                server.send_message(msg, from_addr=from_email, to_addrs=all_recipients)
+            
+            print(f"LTTD email sent to {len(to_emails)} recipient(s) with {len(cc_emails)} CC")
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Email sent successfully',
+                'recipient_count': len(to_emails),
+                'cc_count': len(cc_emails),
+                'high_lttd_count': len(high_lttd_records),
+                'no_lttd_count': len(no_lttd_records)
+            }), 200
+            
+        except Exception as e:
+            print(f"Failed to send email: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'status': 'error',
+                'error': f'Failed to send email: {str(e)}'
+            }), 500
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'status': 'error',
+            'error': f'Failed to process request: {str(e)}'
+        }), 500
 
 
 @app.route('/api/lttd/send-emails', methods=['POST'])
