@@ -462,32 +462,37 @@ class LTTDManager {
             
             console.log('Fetching emails for staff IDs:', allStaffIds);
             
-            // Call Flask backend to fetch emails from Teambook API
-            const response = await fetch('/automation/lttd/api/lttd/fetch-teambook-emails', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    staff_ids: allStaffIds
-                })
-            });
+            let allEmails = [];
             
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to fetch emails from Teambook');
+            try {
+                // Call Flask backend to fetch emails from Teambook API
+                const response = await fetch('/automation/lttd/api/lttd/fetch-teambook-emails', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        staff_ids: allStaffIds
+                    })
+                });
+                
+                if (response.ok) {
+                    const emailData = await response.json();
+                    
+                    if (emailData.status === 'success') {
+                        // Extract emails from response (emails is a dict: {staffId: email})
+                        allEmails = Object.values(emailData.emails).filter(email => email !== null);
+                        console.log('Fetched emails from Teambook:', allEmails);
+                    } else {
+                        console.warn('Teambook API returned error:', emailData.error);
+                    }
+                } else {
+                    console.warn('Teambook email fetch endpoint not available (status:', response.status, ')');
+                }
+            } catch (error) {
+                console.warn('Could not fetch emails from Teambook API:', error.message);
+                console.log('User can enter emails manually');
             }
-            
-            const emailData = await response.json();
-            
-            if (emailData.status !== 'success') {
-                throw new Error(emailData.error || 'Failed to fetch emails');
-            }
-            
-            // Extract emails from response (emails is a dict: {staffId: email})
-            const allEmails = Object.values(emailData.emails).filter(email => email !== null);
-            
-            console.log('Fetched emails:', allEmails);
             
             // Show modal with pre-filled emails
             const modal = document.getElementById('emailModal');
