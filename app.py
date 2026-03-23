@@ -2218,7 +2218,7 @@ def upload_icon():
 
  
 
-@app.route('/api/lttd/records', methods=['POST'])
+@app.route(f'/{APP_NAME}/api/lttd/records', methods=['POST'])
 
 def fetch_lttd_records():
 
@@ -2484,7 +2484,7 @@ def fetch_lttd_records():
 
         }), 500
 
-@app.route('/api/lttd/fetch-emails', methods=['POST'])
+@app.route(f'/{APP_NAME}/api/lttd/fetch-emails', methods=['POST'])
 
 def fetch_lttd_emails():
 
@@ -2924,7 +2924,7 @@ def send_lttd_email_bulk():
         }), 500
 
 
-@app.route('/api/lttd/send-emails', methods=['POST'])
+@app.route(f'/{APP_NAME}/api/lttd/send-emails', methods=['POST'])
 
 def send_lttd_emails():
 
