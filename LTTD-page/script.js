@@ -442,42 +442,97 @@ class LTTDManager {
     }
 
     async showEmailModal() {
-        // Extract unique emails from high LTTD (>15 days) and no LTTD records
-        const highLttdEmails = this.currentRecords
-            .filter(r => r.lead_time_to_deploy_numeric_days > 15)
-            .map(r => r.requested_by)
-            .filter(email => email && email.includes('@'));
-        
-        const noLttdEmails = this.noLttdRecords
-            .map(r => r.requested_by)
-            .filter(email => email && email.includes('@'));
-        
-        const allEmails = [...new Set([...highLttdEmails, ...noLttdEmails])];
-        
-        // Show modal with pre-filled emails
-        const modal = document.getElementById('emailModal');
-        const modalHighCount = document.getElementById('modalHighCount');
-        const modalNoLttdCount = document.getElementById('modalNoLttdCount');
-        const toEmailInput = document.getElementById('toEmail');
-        const emailInfo = document.getElementById('fetchedEmailInfo');
+        const sendEmailBtn = document.getElementById('sendEmailBtn');
+        const originalText = sendEmailBtn.innerHTML;
+        sendEmailBtn.disabled = true;
+        sendEmailBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching emails...';
 
-        if (modal) {
-            // Update counts
-            const highLttdCount = this.currentRecords.filter(r => r.lead_time_to_deploy_numeric_days > 15).length;
-            modalHighCount.textContent = highLttdCount;
-            modalNoLttdCount.textContent = this.noLttdRecords.length;
+        try {
+            // Get unique staff IDs from high LTTD (>15 days) and no LTTD records
+            const highLttdRecords = this.currentRecords.filter(r => r.lead_time_to_deploy_numeric_days > 15);
+            const highLttdStaffIds = highLttdRecords
+                .map(r => r.requested_by_employee_id || r.requested_by)
+                .filter(id => id);
             
-            // Pre-fill To field with all unique emails
-            toEmailInput.value = allEmails.join(', ');
+            const noLttdStaffIds = this.noLttdRecords
+                .map(r => r.requested_by_employee_id || r.requested_by)
+                .filter(id => id);
             
-            // Show info about recipients
-            if (emailInfo) {
-                const infoSpan = emailInfo.querySelector('span');
-                infoSpan.textContent = `Found ${allEmails.length} unique recipient(s) from records. You can edit the list below.`;
-                emailInfo.style.display = 'flex';
+            const allStaffIds = [...new Set([...highLttdStaffIds, ...noLttdStaffIds])];
+            
+            console.log('Fetching emails for staff IDs:', allStaffIds);
+            
+            // Fetch emails from Teambook API for each staff ID
+            const emailPromises = allStaffIds.map(async (staffId) => {
+                try {
+                    const response = await fetch(`https://api-teambook.global.hsbc/v1/people?staffid=${staffId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'text/plain',
+                            'Authorization': 'Bearer ' + (localStorage.getItem('teambook_token') || '')
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        console.warn(`Failed to fetch email for staff ID ${staffId}`);
+                        return null;
+                    }
+                    
+                    const data = await response.text();
+                    // Parse the response to extract email
+                    // Assuming the response contains "Email" field
+                    const emailMatch = data.match(/Email[:\s]+([^\s,\n]+@[^\s,\n]+)/i);
+                    if (emailMatch) {
+                        return emailMatch[1].trim();
+                    }
+                    return null;
+                } catch (error) {
+                    console.error(`Error fetching email for staff ID ${staffId}:`, error);
+                    return null;
+                }
+            });
+            
+            const emails = await Promise.all(emailPromises);
+            const allEmails = emails.filter(email => email !== null);
+            
+            console.log('Fetched emails:', allEmails);
+            
+            // Show modal with pre-filled emails
+            const modal = document.getElementById('emailModal');
+            const modalHighCount = document.getElementById('modalHighCount');
+            const modalNoLttdCount = document.getElementById('modalNoLttdCount');
+            const toEmailInput = document.getElementById('toEmail');
+            const emailInfo = document.getElementById('fetchedEmailInfo');
+
+            if (modal) {
+                // Update counts
+                modalHighCount.textContent = highLttdRecords.length;
+                modalNoLttdCount.textContent = this.noLttdRecords.length;
+                
+                // Pre-fill To field with all unique emails
+                toEmailInput.value = allEmails.join(', ');
+                
+                // Show info about recipients
+                if (emailInfo) {
+                    const infoSpan = emailInfo.querySelector('span');
+                    if (allEmails.length === 0) {
+                        infoSpan.textContent = 'No email addresses found from Teambook API. Please enter recipient emails manually.';
+                        infoSpan.style.color = '#ff6600';
+                    } else {
+                        infoSpan.textContent = `Fetched ${allEmails.length} email(s) from Teambook API for ${allStaffIds.length} staff ID(s). You can edit the list below.`;
+                        infoSpan.style.color = '#0066cc';
+                    }
+                    emailInfo.style.display = 'flex';
+                }
+                
+                modal.style.display = 'flex';
             }
-            
-            modal.style.display = 'flex';
+        } catch (error) {
+            console.error('Error fetching emails:', error);
+            alert(`Failed to fetch email addresses: ${error.message}`);
+        } finally {
+            sendEmailBtn.disabled = false;
+            sendEmailBtn.innerHTML = originalText;
         }
     }
 
@@ -552,7 +607,7 @@ class LTTDManager {
                 r => r.lead_time_to_deploy_numeric_days > 15
             );
 
-            const sendResponse = await fetch('/api/lttd/send-email', {
+            const sendResponse = await fetch('/automation/lttd/api/lttd/send-email', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
